@@ -114,6 +114,22 @@ func GenerateOtp() string {
 	return strconv.Itoa(num)
 }
 
+func GenerateRandomWord() string {
+	rand.Seed(time.Now().UnixNano())
+
+	wordLength := 4
+
+	var result string
+	for i := 0; i < wordLength; i++ {
+		randomIndex := rand.Intn(len(allCharSet))
+		randomLetter := allCharSet[randomIndex]
+
+		result += string(randomLetter)
+	}
+
+	return result
+}
+
 func HasUpper(s string) bool {
 	for _, r := range s {
 		if unicode.IsUpper(r) && unicode.IsLetter(r) {

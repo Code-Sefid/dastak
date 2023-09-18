@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
-	"strconv"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
+	"github.com/soheilkhaledabdi/dastak/common"
 	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/data/db"
 	"github.com/soheilkhaledabdi/dastak/data/models"
@@ -92,7 +91,14 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 			tx.Commit()
 		}
 	}()
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Mobile), bcrypt.DefaultCost)
+	password := common.GenerateRandomWord()
+
+	err = a.SendOTP(request.Mobile, password)
+		if err != nil {
+			return nil , nil , nil
+		}
+		
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
 		return nil, nil, err
@@ -140,19 +146,15 @@ func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*
 		return &dto.Alert{Title: "Invalid Mobile or Password", Message: "The Mobile address or password you provided does not match any account in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
-	perm := rand.Perm(6)
-	permStr := ""
-	for _, num := range perm {
-		permStr += strconv.Itoa(num)
-	}
+	password := common.GenerateRandomWord()
 
-	err = a.SendOTP(request.Mobile, permStr)
+	err = a.SendOTP(request.Mobile, password)
 
 	if err != nil {
 		return nil, err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(permStr), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
 		return nil, err

@@ -32,6 +32,9 @@ func InitServer() {
 
 		products := router.Group("products")
 		routers.Products(products, config)
+
+		factor := router.Group("factors")
+		routers.Factors(factor, config)
 	}
 
 	r.Run(fmt.Sprintf(":%s", config.Server.InternalPort))

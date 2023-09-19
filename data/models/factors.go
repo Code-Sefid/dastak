@@ -16,6 +16,8 @@ const (
 
 type Factors struct {
 	BaseModel
+	User   Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	UserID int
 	Code          string
 	OffPercent    uint
 	Status        FactorStatus

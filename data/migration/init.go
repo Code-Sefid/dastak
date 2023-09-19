@@ -28,9 +28,9 @@ func createTables(database *gorm.DB) {
 	modelsList := []interface{}{
 		&models.JWTToken{},
 		&models.Users{},
+		&models.Categories{},
 		&models.Products{},
 		&models.Customer{},
-		&models.Categories{},
 		&models.Factors{},
 		&models.FactorProducts{},
 		&models.FactorPayment{},

@@ -9,7 +9,7 @@ type Register struct {
 
 type Login struct {
 	Mobile   string `json:"mobile" binding:"required,min=11,max=11"`
-	Password string `json:"password" binding:"required,min=6"`
+	Password string `json:"password" binding:"required,min=4"`
 }
 
 type Mobile struct {

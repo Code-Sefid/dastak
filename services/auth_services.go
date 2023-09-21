@@ -91,7 +91,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 			tx.Commit()
 		}
 	}()
-	password := common.GenerateRandomWord()
+	password := common.GenerateOtp()
 
 	err = a.SendOTP(request.Mobile, password)
 		if err != nil {
@@ -146,7 +146,7 @@ func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*
 		return &dto.Alert{Title: "Invalid Mobile or Password", Message: "The Mobile address or password you provided does not match any account in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
-	password := common.GenerateRandomWord()
+	password := common.GenerateOtp()
 
 	err = a.SendOTP(request.Mobile, password)
 

@@ -100,6 +100,103 @@ func (f *FactorService) GetAll(ctx context.Context, userId int) ([]*dto.FactorRe
 }
 
 
+func (f *FactorService) Update(ctx context.Context, factorID int, request dto.UpdateFactor) error {
+    tx := f.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    var existingFactor models.Factors
+    err := tx.First(&existingFactor, factorID).Error
+    if err != nil {
+        return err 
+    }
+
+    if request.OffPercent != nil {
+        existingFactor.OffPercent = *request.OffPercent
+    }
+    if request.FinalPrice != nil {
+        existingFactor.FinalPrice = *request.FinalPrice
+    }
+
+    err = tx.Save(&existingFactor).Error
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func (f *FactorService) Delete(ctx context.Context, factorID int) error {
+    tx := f.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    var existingFactor models.Factors
+    err := tx.First(&existingFactor, factorID).Error
+    if err != nil {
+        return err
+    }
+
+    err = tx.Delete(&existingFactor).Error
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.FactorProductResponse, error) {
+    tx := f.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    var factor models.Factors
+    err := tx.Where("code = ?", code).First(&factor).Error
+    if err != nil {
+        return nil, err
+    }
+
+    var factorProducts []models.FactorProducts
+    err = tx.Where("factor_id = ?", factor.ID).Preload("Product").Find(&factorProducts).Error
+    if err != nil {
+        return nil, err
+    }
+
+    var products []*dto.ProductFactorResponse
+
+    for _, item := range factorProducts {
+        products = append(products, &dto.ProductFactorResponse{
+            ID:    item.Product.ID,
+            Title: item.Product.Title,
+            Price: float64(item.Product.Price),
+        })
+    }
+
+    factorResponse := &dto.FactorProductResponse{
+        ID:          factor.ID,
+        Code:        factor.Code,
+        OffPercent:  factor.OffPercent,
+        Status:      f.ConvertStringToStatus(factor.Status),
+        Products:    products,
+    }
+
+    return factorResponse, nil
+}
 
 
 // Helper functions

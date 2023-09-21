@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/soheilkhaledabdi/dastak/api/dto"
@@ -55,4 +56,50 @@ func (h *FactorService) GetAll(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, "", ""))
+}
+
+func (h *FactorService) Update(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Params.ByName("id"))
+	req := new(dto.UpdateFactor)
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+		return
+	}
+	err = h.service.Update(c,id,*req)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+}
+
+func (h *FactorService) Delete(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Params.ByName("id"))
+
+	err := h.service.Delete(c,id,)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+}
+
+func (h *FactorService) GetByCode(c *gin.Context) {
+    code := c.Params.ByName("code")
+
+	res , err := h.service.GetByCode(c,code)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+		return
+	}
+
+    c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, "", ""))
 }

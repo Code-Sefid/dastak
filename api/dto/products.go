@@ -21,3 +21,9 @@ type ProductsResponse struct {
 	Categories CategoriesResponse `json:"categories"`
 	Inventory  int                `json:"inventory"`
 }
+
+type ProductFactorResponse struct {
+	ID         int                `json:"id"`
+	Title      string             `json:"title"`
+	Price      float64            `json:"price"`
+} 

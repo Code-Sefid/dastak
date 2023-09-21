@@ -9,9 +9,9 @@ type Wallet struct {
 
 type BankAccounts struct {
 	BaseModel
-	User        Users `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	UserId      int
-	Title       string `gorm:"type:VARCHAR(255)"`
+	User        Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	UserID      int
+	CardName       string `gorm:"type:VARCHAR(255)"`
 	CardNumber  string `gorm:"type:VARCHAR(255)"`
 	ShabaNumber string `gorm:"type:VARCHAR(255)"`
 }

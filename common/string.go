@@ -107,8 +107,8 @@ func GeneratePassword() string {
 
 func GenerateOtp() string {
 	rand.Seed(time.Now().UnixNano())
-	min := int(math.Pow(10, float64(6-1)))
-	max := int(math.Pow(10, float64(6)) - 1)
+	min := int(math.Pow(10, float64(4-1)))
+	max := int(math.Pow(10, float64(4)) - 1)
 
 	var num = rand.Intn(max-min) + min
 	return strconv.Itoa(num)

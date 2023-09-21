@@ -126,6 +126,19 @@ func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
+func (s *BaseService[T, Tc, Tu, Tr]) GetByUserId(ctx context.Context, userId int) (*Tr, error) {
+	model := new(T)
+	db := Preload(s.Database, s.Preloads)
+	err := db.
+		Where("user_id = ? and deleted_by is null", userId).
+		First(model).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return common.TypeConverter[Tr](model)
+}
+
 func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int) (*Tr, error) {
 	model := new(T)
 	db := Preload(s.Database, s.Preloads)

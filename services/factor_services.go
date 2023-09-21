@@ -199,6 +199,56 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 }
 
 
+func (f *FactorService) DeleteItem(ctx context.Context, factorID int, request dto.FactorItem) error {
+    tx := f.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    err := tx.Where("factor_id = ? AND product_id = ?", factorID, request.ID).Delete(&models.FactorProducts{}).Error
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+
+
+func (f *FactorService) AddItem(ctx context.Context, factorID int, request dto.FactorItem) error {
+    tx := f.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    var product models.Products
+    err := tx.Where("id = ?", request.ID).First(&product).Error
+    if err != nil {
+        return err
+    }
+
+    factorItem := &models.FactorProducts{
+        ProductID: int(request.ID),
+        FactorID:  factorID,
+    }
+
+    if err := tx.Create(factorItem).Error; err != nil {
+        return err
+    }
+
+    return nil
+}
+
+
+
 // Helper functions
 func (f *FactorService) ConvertIntToStatus(status int) models.FactorStatus {
 

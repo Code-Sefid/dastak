@@ -29,3 +29,7 @@ type FactorProductResponse struct{
 	Status int `json:"status"`
 	Products []*ProductFactorResponse  `json:"products"`
 }
+
+type FactorItem struct {
+	ID uint `json:"id"`
+}

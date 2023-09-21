@@ -103,3 +103,44 @@ func (h *FactorService) GetByCode(c *gin.Context) {
 
     c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, "", ""))
 }
+
+func (h *FactorService) AddItem(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Params.ByName("id"))
+	req := new(dto.FactorItem)
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+		return
+	}
+	err = h.service.AddItem(c,id, *req)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+}
+
+func (h *FactorService) DeleteItem(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Params.ByName("id"))
+	req := new(dto.FactorItem)
+
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+		return
+	}
+
+	err = h.service.DeleteItem(c,id,*req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError,
+			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+}

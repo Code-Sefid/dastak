@@ -7,7 +7,7 @@ import (
 )
 
 func Customer(r *gin.RouterGroup, cfg *config.Config) {
-	h := handlers.NewCustomerHandler(cfg)
+	h := handlers.NewFactorDetailHandler(cfg)
 
 	r.POST("/", h.Create)
 	r.PUT("/:id", h.Update)

@@ -18,6 +18,7 @@ var (
 	specialCharSet = "!@#$%&*"
 	numberSet      = "0123456789"
 	allCharSet     = lowerCharSet + upperCharSet + specialCharSet + numberSet
+	LowerUpperChart = lowerCharSet + upperCharSet
 )
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
@@ -121,8 +122,8 @@ func GenerateRandomWord() string {
 
 	var result string
 	for i := 0; i < wordLength; i++ {
-		randomIndex := rand.Intn(len(allCharSet))
-		randomLetter := allCharSet[randomIndex]
+		randomIndex := rand.Intn(len(LowerUpperChart))
+		randomLetter := LowerUpperChart[randomIndex]
 
 		result += string(randomLetter)
 	}

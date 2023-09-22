@@ -26,14 +26,14 @@ func addNewTable(database *gorm.DB, model interface{}, tables []interface{}) []i
 func createTables(database *gorm.DB) {
 
 	modelsList := []interface{}{
-		&models.JWTToken{},
 		&models.Users{},
+		&models.JWTToken{},
+		&models.Categories{},
+		&models.Products{},
 		&models.Factors{},
 		&models.FactorProducts{},
 		&models.FactorPayment{},
-		&models.Categories{},
-		&models.Products{},
-		&models.Customer{},
+		&models.FactorDetail{},
 		&models.Wallet{},
 		&models.BankAccounts{},
 		&models.Transactions{},

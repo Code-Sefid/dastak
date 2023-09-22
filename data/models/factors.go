@@ -10,8 +10,8 @@ const (
 	CREATED FactorStatus = "created"
 	PENDING FactorStatus = "pending"
 
-	CARDBYCARD PaymentMethod = "cardByCard"
-	DEPOSIT    PaymentMethod = "deposit"
+	Offline PaymentMethod = "offline"
+	Online    PaymentMethod = "online"
 )
 
 type Factors struct {
@@ -22,7 +22,6 @@ type Factors struct {
 	OffPercent    uint
 	Status        FactorStatus
 	FinalPrice    float64
-	PaymentMethod PaymentMethod
 }
 
 type FactorProducts struct {
@@ -34,9 +33,23 @@ type FactorProducts struct {
 }
 
 type FactorPayment struct {
-	User   Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	UserID int
-
 	Factor   Factors `gorm:"foreignKey:FactorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	FactorID int
+
+	FactorImage string
+	PaymentMethod PaymentMethod `gorm:"type:VARCHAR(255)"`
+}
+
+
+type FactorDetail struct {
+	BaseModel
+	Factor   Factors `gorm:"foreignKey:FactorID;"`
+	FactorID  int
+	FullName     string `gorm:"type:VARCHAR(255)"`
+	Mobile       string `gorm:"type:VARCHAR(255)"`
+	Province     string `gorm:"type:VARCHAR(255)"`
+	City         string `gorm:"type:VARCHAR(255)"`
+	Address 	 string
+	PostalCode   string `gorm:"type:VARCHAR(255)"`
+	TrackingCode string `gorm:"type:VARCHAR(255)"`
 }

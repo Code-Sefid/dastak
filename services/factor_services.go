@@ -48,7 +48,6 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
         OffPercent:   request.OffPercent,
         Status:       models.CREATED,
         FinalPrice:   request.FinalPrice,
-        PaymentMethod: models.PaymentMethod(models.NOTPAID),
     }
 
     err := tx.Create(&newFactor).Error

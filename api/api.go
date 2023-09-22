@@ -24,6 +24,8 @@ func InitServer() {
 
 	router := r.Group("api/v1")
 	{
+		router.Static("/files", "./uploads")
+
 		auth := router.Group("auth")
 		routers.Auth(auth, config)
 
@@ -38,6 +40,9 @@ func InitServer() {
 
 		bank := router.Group("bank")
 		routers.Bank(bank, config)
+
+		customer := router.Group("factor-detail")
+		routers.Customer(customer, config)
 	}
 
 	r.Run(fmt.Sprintf(":%s", config.Server.InternalPort))

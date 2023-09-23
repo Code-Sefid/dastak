@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/soheilkhaledabdi/dastak/api/middlewares"
 	routers "github.com/soheilkhaledabdi/dastak/api/routes"
 	"github.com/soheilkhaledabdi/dastak/api/validation"
 	"github.com/soheilkhaledabdi/dastak/config"

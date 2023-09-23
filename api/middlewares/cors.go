@@ -7,7 +7,7 @@ import (
 func Cors() gin.HandlerFunc {
     return func(c *gin.Context) {
 
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+        c.Header("Access-Control-Allow-Origin", "*")
         c.Header("Access-Control-Allow-Headers", "*")
         c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
         c.Header("Access-Control-Max-Age", "21600")

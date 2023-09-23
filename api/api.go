@@ -18,10 +18,9 @@ var logger = logging.NewLogger(config.GetConfig())
 func InitServer() {
     config := config.GetConfig()
     r := gin.New()
+    r.Use(middlewares.Cors()) 
     RegisterValidators()
     r.Use(gin.Logger(), gin.Recovery())
-    // r.Use(cors.Default())
-    r.Use(middlewares.Cors()) 
 
     router := r.Group("api/v1")
     {

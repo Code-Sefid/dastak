@@ -28,8 +28,50 @@ func NewProductsService(cfg *config.Config) *ProductsService {
 
 // Create
 func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreateProductsRequest, userId int) (*dto.ProductsResponse, error) {
-	return s.base.CreateByUserId(ctx, req, userId)
+	tx := s.base.Database.WithContext(ctx)
+	defer func (){
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}else{
+			tx.Commit()
+		}
+	}()
+
+	product := models.Products{
+		UserID:    userId,
+		Title:    req.Title,
+		Price:    int(req.Price),
+		CategoryID: *req.CategoryID,
+		Inventory: req.Inventory,
+	}
+	if err := tx.Create(&product).Error; err != nil {
+		return nil, err
+	}
+
+	var productResponse dto.ProductsResponse
+
+	if err := tx.Preload("Categories").First(&productResponse, product.ID).Error; err != nil {
+		return nil, err
+	}
+
+	var categoryResponse *dto.CategoriesResponse
+	if productResponse.Categories != nil {
+		categoryResponse = &dto.CategoriesResponse{
+			ID: productResponse.Categories.ID,
+			Name: productResponse.Categories.Name,
+		}
+	}
+
+
+	return &dto.ProductsResponse{
+		ID:        productResponse.ID,
+		Title:    productResponse.Title,
+		Price:    productResponse.Price,
+		Categories: categoryResponse,
+		Inventory: productResponse.Inventory,
+	}, nil
 }
+
 
 // Update
 func (s *ProductsService) Update(ctx context.Context, id int, req *dto.UpdateProductsRequest) (*dto.ProductsResponse, error) {

@@ -20,7 +20,7 @@ func NewProductsService(cfg *config.Config) *ProductsService {
 			Database: db.GetDb(),
 			Logger:   logging.NewLogger(cfg),
 			Preloads: []preload{
-				{string: "Categories"},
+				{string: "Category"},
 			},
 		},
 	}
@@ -50,15 +50,15 @@ func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreatePro
 
 	var productResponse dto.ProductsResponse
 
-	if err := tx.Preload("Categories").First(&productResponse, product.ID).Error; err != nil {
+	if err := tx.Preload("Category").First(&productResponse, product.ID).Error; err != nil {
 		return nil, err
 	}
 
 	var categoryResponse *dto.CategoriesResponse
-	if productResponse.Categories != nil {
+	if productResponse.Category != nil {
 		categoryResponse = &dto.CategoriesResponse{
-			ID: productResponse.Categories.ID,
-			Name: productResponse.Categories.Name,
+			ID: productResponse.Category.ID,
+			Name: productResponse.Category.Name,
 		}
 	}
 
@@ -67,7 +67,7 @@ func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreatePro
 		ID:        productResponse.ID,
 		Title:    productResponse.Title,
 		Price:    productResponse.Price,
-		Categories: categoryResponse,
+		Category: categoryResponse,
 		Inventory: productResponse.Inventory,
 	}, nil
 }

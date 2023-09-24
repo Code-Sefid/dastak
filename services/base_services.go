@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -77,6 +78,7 @@ func (s *BaseService[T, Tc, Tu, Tr]) CreateByUserId(ctx context.Context, req *Tc
 	return s.GetById(ctx, bm.ID)
 }
 
+
 func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, req *Tu) (*Tr, error) {
 
 	updateMap, _ := common.TypeConverter[map[string]interface{}](req)
@@ -147,9 +149,14 @@ func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int) (*Tr, 
 		Where("id = ? and deleted_by is null", id).
 		First(model).
 		Error
+
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
+
 	return common.TypeConverter[Tr](model)
 }
 

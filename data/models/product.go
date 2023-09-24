@@ -6,7 +6,7 @@ type Products struct {
 	UserID     int
 	Title      string `gorm:"type:VARCHAR(255)"`
 	Price      int
-	Categories Categories `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Category Categories `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CategoryID int
 	Inventory  int
 }

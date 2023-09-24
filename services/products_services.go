@@ -28,49 +28,51 @@ func NewProductsService(cfg *config.Config) *ProductsService {
 
 // Create
 func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreateProductsRequest, userId int) (*dto.ProductsResponse, error) {
-	tx := s.base.Database.WithContext(ctx)
-	defer func (){
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}else{
-			tx.Commit()
-		}
-	}()
+    tx := s.base.Database.WithContext(ctx).Begin()
 
-	product := models.Products{
-		UserID:    userId,
-		Title:    req.Title,
-		Price:    int(req.Price),
-		CategoryID: *req.CategoryID,
-		Inventory: req.Inventory,
-	}
-	if err := tx.Create(&product).Error; err != nil {
-		return nil, err
-	}
+    product := models.Products{
+        UserID:    userId,
+        Title:     req.Title,
+        Price:     int(req.Price),
+        Inventory: req.Inventory,
+    }
 
-	var productResponse dto.ProductsResponse
+    if req.CategoryID != nil {
+        product.CategoryID = *req.CategoryID
+    }
 
-	if err := tx.Preload("Category").First(&productResponse, product.ID).Error; err != nil {
-		return nil, err
-	}
+    if err := tx.Create(&product).Error; err != nil {
+        tx.Rollback()
+        return nil, err
+    }
 
-	var categoryResponse *dto.CategoriesResponse
-	if productResponse.Category != nil {
-		categoryResponse = &dto.CategoriesResponse{
-			ID: productResponse.Category.ID,
-			Name: productResponse.Category.Name,
-		}
-	}
+    var productResponse models.Products
 
+    if err := tx.Preload("Category").First(&productResponse, product.ID).Error; err != nil {
+        tx.Rollback()
+        return nil, err
+    }
 
-	return &dto.ProductsResponse{
-		ID:        productResponse.ID,
-		Title:    productResponse.Title,
-		Price:    productResponse.Price,
-		Category: categoryResponse,
-		Inventory: productResponse.Inventory,
-	}, nil
+    var categoryResponse *dto.CategoriesResponse
+    if productResponse.Category != nil {
+        categoryResponse = &dto.CategoriesResponse{
+            ID:   productResponse.Category.ID,
+            Name: productResponse.Category.Name,
+        }
+    }
+
+    tx.Commit()
+
+    return &dto.ProductsResponse{
+        ID:        productResponse.ID,
+        Title:     productResponse.Title,
+        Price:     float64(productResponse.Price),
+        Category:  categoryResponse,
+        Inventory: productResponse.Inventory,
+    }, nil
 }
+
+
 
 
 // Update

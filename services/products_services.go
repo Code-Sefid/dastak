@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
 	"github.com/soheilkhaledabdi/dastak/config"
@@ -28,52 +29,49 @@ func NewProductsService(cfg *config.Config) *ProductsService {
 
 // Create
 func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreateProductsRequest, userId int) (*dto.ProductsResponse, error) {
-    tx := s.base.Database.WithContext(ctx).Begin()
+	tx := s.base.Database.WithContext(ctx).Begin()
 
-    product := models.Products{
-        UserID:    userId,
-        Title:     req.Title,
-        Price:     int(req.Price),
-        Inventory: req.Inventory,
-    }
+	product := models.Products{
+		UserID:    userId,
+		Title:     req.Title,
+		Price:     int(req.Price),
+		Inventory: req.Inventory,
+	}
 
-    if req.CategoryID != nil {
-        product.CategoryID = *req.CategoryID
-    }
+	if req.CategoryID != nil {
+		product.CategoryID = *req.CategoryID
+	}
 
-    if err := tx.Create(&product).Error; err != nil {
-        tx.Rollback()
-        return nil, err
-    }
+	if err := tx.Create(&product).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create product: %v", err)
+	}
 
-    var productResponse models.Products
+	var productResponse models.Products
 
-    if err := tx.Preload("Category").First(&productResponse, product.ID).Error; err != nil {
-        tx.Rollback()
-        return nil, err
-    }
+	if err := tx.Model(&models.Products{}).Preload("Category").First(&productResponse, product.ID).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to retrieve product after creation: %v", err)
+	}
 
-    var categoryResponse *dto.CategoriesResponse
-    if productResponse.Category != nil {
-        categoryResponse = &dto.CategoriesResponse{
-            ID:   productResponse.Category.ID,
-            Name: productResponse.Category.Name,
-        }
-    }
+	var categoryResponse *dto.CategoriesResponse
+	if productResponse.Category != nil {
+		categoryResponse = &dto.CategoriesResponse{
+			ID:   productResponse.Category.ID,
+			Name: productResponse.Category.Name,
+		}
+	}
 
-    tx.Commit()
+	tx.Commit()
 
-    return &dto.ProductsResponse{
-        ID:        productResponse.ID,
-        Title:     productResponse.Title,
-        Price:     float64(productResponse.Price),
-        Category:  categoryResponse,
-        Inventory: productResponse.Inventory,
-    }, nil
+	return &dto.ProductsResponse{
+		ID:        productResponse.ID,
+		Title:     productResponse.Title,
+		Price:     float64(productResponse.Price),
+		Category:  categoryResponse,
+		Inventory: productResponse.Inventory,
+	}, nil
 }
-
-
-
 
 // Update
 func (s *ProductsService) Update(ctx context.Context, id int, req *dto.UpdateProductsRequest) (*dto.ProductsResponse, error) {

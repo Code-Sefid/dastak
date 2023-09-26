@@ -23,7 +23,7 @@ func NewFactorDetailService(cfg *config.Config) *FactorDetailService {
 	return &FactorDetailService{
 		base: &BaseService[models.FactorDetail, dto.CreateFactorDetailRequest, dto.UpdateFactorDetailRequest, dto.FactorDetailResponse]{
 			Database: db.GetDb(),
-			Config:  cfg,
+			Config:   cfg,
 			Logger:   logging.NewLogger(cfg),
 		},
 	}
@@ -59,7 +59,6 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 		}
 	}()
 
-
 	var factor models.Factors
 	if err := tx.First(&factor, req.FactorID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -68,9 +67,7 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 		return err
 	}
 
-
-	
-	randomName :=  common.GenerateRandomWord() + filepath.Ext(req.Image.Filename)
+	randomName := common.GenerateRandomWord() + filepath.Ext(req.Image.Filename)
 
 	dstPath := filepath.Join("uploads", randomName)
 
@@ -81,10 +78,9 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 		return err
 	}
 
-
 	FactorPayment := models.FactorPayment{
-		FactorID: req.FactorID,
-		FactorImage: url,
+		FactorID:      req.FactorID,
+		FactorImage:   url,
 		PaymentMethod: models.PaymentMethod(req.PaymentMethod),
 	}
 
@@ -92,6 +88,6 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

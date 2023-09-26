@@ -16,38 +16,37 @@ import (
 var logger = logging.NewLogger(config.GetConfig())
 
 func InitServer() {
-    config := config.GetConfig()
-    r := gin.New()
-    r.Use(middlewares.Cors()) 
-    RegisterValidators()
-    r.Use(gin.Logger(), gin.Recovery())
+	config := config.GetConfig()
+	r := gin.New()
+	r.Use(middlewares.Cors())
+	RegisterValidators()
+	r.Use(gin.Logger(), gin.Recovery())
 
-    router := r.Group("api/v1")
-    {
-        router.Static("/files", "./uploads")
+	router := r.Group("api/v1")
+	{
+		router.Static("/files", "./uploads")
 
-        auth := router.Group("auth")
-        routers.Auth(auth, config)
+		auth := router.Group("auth")
+		routers.Auth(auth, config)
 
-        categories := router.Group("categories")
-        routers.Categories(categories, config)
+		categories := router.Group("categories")
+		routers.Categories(categories, config)
 
-        products := router.Group("products")
-        routers.Products(products, config)
+		products := router.Group("products")
+		routers.Products(products, config)
 
-        factor := router.Group("factors")
-        routers.Factors(factor, config)
+		factor := router.Group("factors")
+		routers.Factors(factor, config)
 
-        bank := router.Group("bank")
-        routers.Bank(bank, config)
+		bank := router.Group("bank")
+		routers.Bank(bank, config)
 
-        customer := router.Group("factor-detail")
-        routers.Customer(customer, config)
-    }
+		customer := router.Group("factor-detail")
+		routers.Customer(customer, config)
+	}
 
-    r.Run(fmt.Sprintf(":%s", config.Server.InternalPort))
+	r.Run(fmt.Sprintf(":%s", config.Server.InternalPort))
 }
-
 
 func RegisterValidators() {
 	val, ok := binding.Validator.Engine().(*validator.Validate)

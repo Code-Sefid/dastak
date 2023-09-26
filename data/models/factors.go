@@ -11,17 +11,17 @@ const (
 	PENDING FactorStatus = "pending"
 
 	Offline PaymentMethod = "offline"
-	Online    PaymentMethod = "online"
+	Online  PaymentMethod = "online"
 )
 
 type Factors struct {
 	BaseModel
-	User   Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	UserID int
-	Code          string
-	OffPercent    uint
-	Status        FactorStatus
-	FinalPrice    float64
+	User       Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	UserID     int
+	Code       string
+	OffPercent uint
+	Status     FactorStatus
+	FinalPrice float64
 }
 
 type FactorProducts struct {
@@ -36,20 +36,19 @@ type FactorPayment struct {
 	Factor   Factors `gorm:"foreignKey:FactorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	FactorID int
 
-	FactorImage string
+	FactorImage   string
 	PaymentMethod PaymentMethod `gorm:"type:VARCHAR(255)"`
 }
 
-
 type FactorDetail struct {
 	BaseModel
-	Factor   Factors `gorm:"foreignKey:FactorID;"`
-	FactorID  int
+	Factor       Factors `gorm:"foreignKey:FactorID;"`
+	FactorID     int
 	FullName     string `gorm:"type:VARCHAR(255)"`
 	Mobile       string `gorm:"type:VARCHAR(255)"`
 	Province     string `gorm:"type:VARCHAR(255)"`
 	City         string `gorm:"type:VARCHAR(255)"`
-	Address 	 string
+	Address      string
 	PostalCode   string `gorm:"type:VARCHAR(255)"`
 	TrackingCode string `gorm:"type:VARCHAR(255)"`
 }

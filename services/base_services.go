@@ -29,7 +29,7 @@ type preload struct {
 type BaseService[T any, Tc any, Tu any, Tr any] struct {
 	Database *gorm.DB
 	Logger   logging.Logger
-	Config  *config.Config
+	Config   *config.Config
 	Preloads []preload
 }
 
@@ -77,7 +77,6 @@ func (s *BaseService[T, Tc, Tu, Tr]) CreateByUserId(ctx context.Context, req *Tc
 	bm, _ := common.TypeConverter[models.BaseModel](model)
 	return s.GetById(ctx, bm.ID)
 }
-
 
 func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, req *Tu) (*Tr, error) {
 

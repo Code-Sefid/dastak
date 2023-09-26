@@ -25,10 +25,10 @@ func GenerateFactorCode() string {
 	characters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	charactersLength := len(characters)
 
-		for counter := 0; counter < 5; counter++ {
-			randomIndex := rand.Intn(charactersLength)
-			result += string(characters[randomIndex])
-		}
+	for counter := 0; counter < 5; counter++ {
+		randomIndex := rand.Intn(charactersLength)
+		result += string(characters[randomIndex])
+	}
 
 	return result
 }

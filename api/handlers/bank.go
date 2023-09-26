@@ -24,7 +24,6 @@ func (h *BankHandler) Update(c *gin.Context) {
 	Update(c, h.service.Update)
 }
 
-
 func (h *BankHandler) GetByUserId(c *gin.Context) {
 	GetByUserId(c, h.service.GetByUserId)
 }

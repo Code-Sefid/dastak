@@ -35,14 +35,14 @@ func NewAuthService(cfg *config.Config) *AuthService {
 	}
 }
 
-func (a *AuthService) Login(request *dto.Login) (*dto.TokenDetail, *dto.Alert, error) {
+func (a *AuthService) Login(request *dto.Login) (*dto.TokenDetail, *dto.Alert, bool, error) {
 
 	exsit, err := a.ExistsByMobile(request.Mobile)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 	if !exsit {
-		return nil, &dto.Alert{Title: "Invalid Mobile or Password", Message: "The Mobile address or password you provided does not match any account in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارید یا رمز شما اشتباه است."}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
 	var user models.Users
@@ -53,36 +53,27 @@ func (a *AuthService) Login(request *dto.Login) (*dto.TokenDetail, *dto.Alert, e
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &dto.Alert{Title: "Invalid Mobile or Password", Message: "The Mobile address or password you provided does not match any account in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+			return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارید یا رمز شما اشتباه است."}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 		}
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
 	if err != nil {
-		return nil, &dto.Alert{Title: "Invalid Mobile or Password", Message: "The Mobile address or password you provided does not match any account in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارید یا رمز شما اشتباه است."}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
 	tokenData := tokenDto{UserId: int(user.ID), Mobile: user.Mobile}
 
 	token, err := a.tokenService.GenerateToken(&tokenData)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 
-	return token, &dto.Alert{Title: "Welcome Back!", Message: "Your login was successful"}, nil
+	return token, &dto.Alert{Message: "خوش امدید"}, true, nil
 }
 
-func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto.TokenDetail, *dto.Alert, error) {
-
-	exist, err := a.ExistsByMobile(request.Mobile)
-	if err != nil {
-		return nil, nil, err
-	}
-	if exist {
-		return nil, &dto.Alert{Title: "Mobile number already exists", Message: "The Mobile address you provided already exists in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
-	}
-
+func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto.TokenDetail, *dto.Alert, bool, error) {
 	tx := a.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil || tx.Error != nil {
@@ -91,17 +82,26 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 			tx.Commit()
 		}
 	}()
+
+	exist, err := a.ExistsByMobile(request.Mobile)
+	if err != nil {
+		return nil, nil, false, err
+	}
+	if exist {
+		return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارید یا رمز شما اشتباه است"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+	}
+
 	password := common.GenerateOtp()
 
 	err = a.SendOTP(request.Mobile, password)
-		if err != nil {
-			return nil , nil , nil
-		}
-		
+	if err != nil {
+		return nil, nil, false, err
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 
 	user := models.Users{
@@ -115,20 +115,20 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 	err = tx.Create(&user).Error
 	if err != nil {
 		a.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 
 	tokenData := tokenDto{UserId: int(user.ID), Mobile: user.Mobile}
 
 	token, err := a.tokenService.GenerateToken(&tokenData)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, err
 	}
 
-	return token, &dto.Alert{Title: "Welcome!", Message: "Your registration was successful"}, nil
+	return token, &dto.Alert{Message: "حساب شما با موفقیت ثبت شد"}, true, nil
 }
 
-func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*dto.Alert, error) {
+func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*dto.Alert, bool, error) {
 	tx := a.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil || tx.Error != nil {
@@ -140,10 +140,10 @@ func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*
 
 	exsit, err := a.ExistsByMobile(request.Mobile)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if !exsit {
-		return &dto.Alert{Title: "Invalid Mobile or Password", Message: "The Mobile address or password you provided does not match any account in our system."}, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		return &dto.Alert{Message: "شماره موبایل شما وجود ندارید یا رمز شما اشتباه است."}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
 	password := common.GenerateOtp()
@@ -151,25 +151,24 @@ func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*
 	err = a.SendOTP(request.Mobile, password)
 
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
-		return nil, err
+		return nil, false, err
 	}
 
 	err = tx.Model(&models.Users{}).Where("mobile = ?", request.Mobile).Update("password", string(hashedPassword)).Error
 	if err != nil {
 		a.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
-		return nil, err
+		return nil, false, err
 	}
 
 	return &dto.Alert{
-		Title:   "Success",
-		Message: "Your password successfully send to your mobile",
-	}, nil
+		Message: "رمز شما با موفقیت ارسال شد",
+	}, true, nil
 }
 
 func (a *AuthService) Logout(token string) error {

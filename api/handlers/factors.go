@@ -29,33 +29,32 @@ func (h *FactorService) Create(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	err = h.service.Create(c,userID, *req)
+	err = h.service.Create(c, userID, *req)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }
-
 
 func (h *FactorService) GetAll(c *gin.Context) {
 	userID := int(c.Value(constants.UserIdKey).(float64))
 
-	res , err := h.service.GetAll(c,userID)
+	res, err := h.service.GetAll(c, userID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
 }
 
 func (h *FactorService) Update(c *gin.Context) {
@@ -64,44 +63,44 @@ func (h *FactorService) Update(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	err = h.service.Update(c,id,*req)
+	err = h.service.Update(c, id, *req)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }
 
 func (h *FactorService) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 
-	err := h.service.Delete(c,id,)
+	err := h.service.Delete(c, id)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }
 
 func (h *FactorService) GetByCode(c *gin.Context) {
-    code := c.Params.ByName("code")
+	code := c.Params.ByName("code")
 
-	res , err := h.service.GetByCode(c,code)
+	res, err := h.service.GetByCode(c, code)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-    c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
 }
 
 func (h *FactorService) AddItem(c *gin.Context) {
@@ -110,18 +109,18 @@ func (h *FactorService) AddItem(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	err = h.service.AddItem(c,id, *req)
+	err = h.service.AddItem(c, id, *req)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }
 
 func (h *FactorService) DeleteItem(c *gin.Context) {
@@ -131,16 +130,16 @@ func (h *FactorService) DeleteItem(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
 
-	err = h.service.DeleteItem(c,id,*req)
+	err = h.service.DeleteItem(c, id, *req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }

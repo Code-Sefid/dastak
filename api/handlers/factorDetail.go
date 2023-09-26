@@ -41,16 +41,16 @@ func (p *FactorDetailHandler) FactorPayment(c *gin.Context) {
 	err := c.ShouldBind(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
 
 	err = p.service.FactorPayment(c, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithAnyError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithAnyError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, "", ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }

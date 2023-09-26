@@ -41,7 +41,7 @@ func Authentication(cfg *config.Config) gin.HandlerFunc {
 		}
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, helper.GenerateBaseResponseWithError(
-				false, err, "Unauthorized", "Please Login to Access Applications",
+				false, err, "لطفا برای دسترسی به سایت وارد شوید",
 			))
 			return
 		}

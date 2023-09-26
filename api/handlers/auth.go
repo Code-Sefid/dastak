@@ -28,23 +28,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	token, alert, err := h.service.Login(req)
+	token, alert, status, err := h.service.Login(req)
 
 	if alert != nil && err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			helper.GenerateBaseResponseWithError(true, err, alert.Title, alert.Message))
+			helper.GenerateBaseResponseWithError(status, err, alert.Message))
 		return
 	}
 	if err != nil && alert == nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(status, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, true, alert.Title, alert.Message))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, alert.Message))
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -52,23 +52,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	token, alert, err := h.service.Register(c, req)
+	token, alert, status, err := h.service.Register(c, req)
 
 	if alert != nil && err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			helper.GenerateBaseResponseWithError(true, err, alert.Title, alert.Message))
+			helper.GenerateBaseResponseWithError(status, err, alert.Message))
 		return
 	}
 	if err != nil && alert == nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(status, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, true, alert.Title, alert.Message))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, alert.Message))
 }
 
 func (h *AuthHandler) ResendPassword(c *gin.Context) {
@@ -76,23 +76,23 @@ func (h *AuthHandler) ResendPassword(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Validation error", "Please fill in the data correctly"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	alert, err := h.service.ResendPassword(c, *req)
+	alert, status, err := h.service.ResendPassword(c, *req)
 
 	if alert != nil && err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			helper.GenerateBaseResponseWithError(true, err, alert.Title, alert.Message))
+			helper.GenerateBaseResponseWithError(status, err, alert.Message))
 		return
 	}
 	if err != nil && alert == nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized,
-			helper.GenerateBaseResponseWithError(false, err, "Internal error", "Please try again or contact support"))
+			helper.GenerateBaseResponseWithError(status, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, alert.Title, alert.Message))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(status, true, alert.Message))
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
@@ -100,9 +100,9 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	token := strings.Split(auth, " ")
 	err := h.service.Logout(token[1])
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, helper.GenerateBaseResponse(nil, false, "Your not Login", "Please login and try again"))
+		c.JSON(http.StatusUnauthorized, helper.GenerateBaseResponse(nil, false, "لطفا دوباره وارد شوید"))
 
 	}
 
-	c.JSON(http.StatusCreated, helper.GenerateBaseResponse(nil, true, "Logout", "We are waiting for your return"))
+	c.JSON(http.StatusCreated, helper.GenerateBaseResponse(nil, true, "با موفقیت خارج شدید"))
 }

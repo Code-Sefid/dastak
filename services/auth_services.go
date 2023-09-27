@@ -88,7 +88,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		return nil, nil, false, err
 	}
 	if exist {
-		return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارید یا رمز شما اشتباه است"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		return nil, &dto.Alert{Message: "شماره موبایل شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
 	password := common.GenerateOtp()

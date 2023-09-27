@@ -21,7 +21,6 @@ type Factors struct {
 	Code       string
 	OffPercent uint
 	Status     FactorStatus
-	FinalPrice float64
 }
 
 type FactorProducts struct {

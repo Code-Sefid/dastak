@@ -45,7 +45,6 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 		UserID:     userId,
 		OffPercent: request.OffPercent,
 		Status:     models.CREATED,
-		FinalPrice: request.FinalPrice,
 	}
 
 	err := tx.Create(&newFactor).Error
@@ -55,7 +54,7 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 
 	for _, product := range request.Products {
 		err := tx.Create(&models.FactorProducts{
-			ProductID: int(product.ID),
+			ProductID: int(product),
 			FactorID:  int(newFactor.ID),
 		}).Error
 		if err != nil {
@@ -114,10 +113,6 @@ func (f *FactorService) Update(ctx context.Context, factorID int, request dto.Up
 	if request.OffPercent != nil {
 		existingFactor.OffPercent = *request.OffPercent
 	}
-	if request.FinalPrice != nil {
-		existingFactor.FinalPrice = *request.FinalPrice
-	}
-
 	err = tx.Save(&existingFactor).Error
 	if err != nil {
 		return err
@@ -241,7 +236,6 @@ func (f *FactorService) AddItem(ctx context.Context, factorID int, request dto.F
 
 // Helper functions
 func (f *FactorService) ConvertIntToStatus(status int) models.FactorStatus {
-
 	switch status {
 	case 1:
 		return models.CREATED

@@ -268,11 +268,17 @@ func (f *FactorService) ConvertIntToStatus(status int) models.FactorStatus {
 	case 2:
 		return models.PENDING
 	case 3:
-		return models.PAID
-	case 4:
-		return models.NOTPAID
-	case 5:
 		return models.CANCEL
+	case 4:
+		return models.EXPIRED
+	case 5:
+		return models.NOTPAID
+	case 6 :
+		return models.ACCEPTED
+	case 7:
+		return models.POSTED
+	case 8:
+		return models.FINISH
 	default:
 		return models.CREATED
 	}
@@ -284,12 +290,18 @@ func (f *FactorService) ConvertStringToStatus(status models.FactorStatus) int {
 		return 1
 	case models.PENDING:
 		return 2
-	case models.PAID:
-		return 3
-	case models.NOTPAID:
-		return 4
 	case models.CANCEL:
+		return 3
+	case models.EXPIRED:
+		return 4
+	case models.PAID:
 		return 5
+	case models.ACCEPTED:
+		return 6
+	case models.POSTED:
+		return 7
+	case models.FINISH : 
+		return 8
 	default:
 		return 1
 	}

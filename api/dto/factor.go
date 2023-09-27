@@ -8,8 +8,8 @@ type CreateFactor struct {
 type FactorResponse struct {
 	ID         int    `json:"id"`
 	Code       string `json:"code"`
-	OffPercent uint   `json:"offPercent" binding:"required"`
-	Status     int
+	OffPercent uint   `json:"offPercent"`
+	Status     int     `json:"status"`
 }
 
 type UpdateFactor struct {

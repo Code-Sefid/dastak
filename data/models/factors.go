@@ -9,6 +9,11 @@ const (
 	CANCEL  FactorStatus = "cancel"
 	CREATED FactorStatus = "created"
 	PENDING FactorStatus = "pending"
+	EXPIRED FactorStatus = "expired"
+	ACCEPTED FactorStatus = "accepted"
+	POSTED FactorStatus = "posted"
+	FINISH FactorStatus = "finish"
+
 
 	Offline PaymentMethod = "offline"
 	Online  PaymentMethod = "online"

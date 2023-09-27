@@ -12,7 +12,7 @@ func Factors(router *gin.RouterGroup, cfg *config.Config) {
 	router.POST("/", middlewares.Authentication(cfg), f.Create)
 	router.POST("/get-by-filter", middlewares.Authentication(cfg), f.GetAll)
 	router.PUT("/:id", middlewares.Authentication(cfg), f.Update)
-	router.GET("/:code", middlewares.Authentication(cfg), f.GetByCode)
+	router.GET("/:code", f.GetByCode)
 	router.DELETE("/:id", middlewares.Authentication(cfg), f.Delete)
 	router.POST("/item/:id", middlewares.Authentication(cfg), f.AddItem)
 	router.DELETE("/item/:id", middlewares.Authentication(cfg), f.DeleteItem)

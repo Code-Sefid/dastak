@@ -182,7 +182,7 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 	}()
 
 	var factor models.Factors
-	err := tx.Where("code = ?", code).First(&factor).Error
+	err := tx.Where("code = ?", code).Preload("User").First(&factor).Error
 	if err != nil {
 		return nil, err
 	}

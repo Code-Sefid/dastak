@@ -17,7 +17,7 @@ func NewCategoriesHandler(cfg *config.Config) *CategoriesHandler {
 }
 
 func (h *CategoriesHandler) Create(c *gin.Context) {
-	Create(c, h.service.Create)
+	CreateByUserId(c, h.service.Create)
 }
 
 func (h *CategoriesHandler) Update(c *gin.Context) {

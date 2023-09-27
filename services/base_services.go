@@ -159,8 +159,8 @@ func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int) (*Tr, 
 	return common.TypeConverter[Tr](model)
 }
 
-func (s *BaseService[T, Tc, Tu, Tr]) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter) (*dto.PagedList[Tr], error) {
-	res, err := Paginate[T, Tr](req, s.Preloads, s.Database)
+func (s *BaseService[T, Tc, Tu, Tr]) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter , userId int) (*dto.PagedList[Tr], error) {
+	res, err := Paginate[T, Tr](req, s.Preloads, s.Database , userId)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func NewPagedList[T any](items *[]T, count int64, pageNumber int, pageSize int64
 }
 
 // Paginate
-func Paginate[T any, Tr any](pagination *dto.PaginationInputWithFilter, preloads []preload, db *gorm.DB) (*dto.PagedList[Tr], error) {
+func Paginate[T any, Tr any](pagination *dto.PaginationInputWithFilter, preloads []preload, db *gorm.DB , userId int) (*dto.PagedList[Tr], error) {
 	model := new(T)
 	var items *[]T
 	var rItems *[]Tr
@@ -193,11 +193,13 @@ func Paginate[T any, Tr any](pagination *dto.PaginationInputWithFilter, preloads
 
 	db.
 		Model(model).
+		Where("user_id" , userId).
 		Where(query).
 		Count(&totalRows)
 
 	err := db.
 		Where(query).
+		Where("user_id" , userId).
 		Offset(pagination.GetOffset()).
 		Limit(pagination.GetPageSize()).
 		Order(sort).

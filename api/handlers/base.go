@@ -121,7 +121,8 @@ func GetByUserId[To any](c *gin.Context, caller func(c context.Context, id int) 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
 }
 
-func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, req *Ti) (*To, error)) {
+func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, req *Ti,userId int) (*To, error)) {
+	userID := int(c.Value(constants.UserIdKey).(float64))
 	req := new(Ti)
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -130,7 +131,7 @@ func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, 
 		return
 	}
 
-	res, err := caller(c, req)
+	res, err := caller(c, req,userID)
 	if err != nil {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
 			helper.GenerateBaseResponseWithError(false, err, "Internal error"))

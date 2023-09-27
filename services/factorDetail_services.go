@@ -45,8 +45,8 @@ func (s *FactorDetailService) GetById(ctx context.Context, id int) (*dto.FactorD
 }
 
 // Get By Filter
-func (s *FactorDetailService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter) (*dto.PagedList[dto.FactorDetailResponse], error) {
-	return s.base.GetByFilter(ctx, req)
+func (s *FactorDetailService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter,userId int) (*dto.PagedList[dto.FactorDetailResponse], error) {
+	return s.base.GetByFilter(ctx, req , userId)
 }
 
 func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPayment) error {

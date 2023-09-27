@@ -7,6 +7,7 @@ import (
 	"github.com/soheilkhaledabdi/dastak/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var dbClient *gorm.DB
@@ -17,7 +18,10 @@ func InitDb(cfg *config.Config) error {
 		cfg.Postgres.Host, cfg.Postgres.Port, cfg.Postgres.User, cfg.Postgres.Password,
 		cfg.Postgres.DbName, cfg.Postgres.SSLMode)
 
-	dbClient, err = gorm.Open(postgres.Open(cnn), &gorm.Config{})
+	dbClient, err = gorm.Open(postgres.Open(cnn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	
 	if err != nil {
 		return err
 	}

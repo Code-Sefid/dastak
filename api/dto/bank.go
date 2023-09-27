@@ -1,19 +1,18 @@
 package dto
 
-
 type CreateBankRequest struct {
-	CardName string `json:"cardName" binding:"required"`
-	CardNumber string `json:"cardNumber" binding:"required"`
+	CardName    string `json:"cardName" binding:"required,min=12,max=12"`
+	CardNumber  string `json:"cardNumber" binding:"required,min=3"`
 	ShabaNumber string `json:"shabaNumber"`
 }
 
 type UpdateBankRequest struct {
-	CardName string `json:"cardName" `
-	CardNumber string `json:"cardNumber"`
+	CardName    string `json:"cardName" binding:"min=12,max=12"`
+	CardNumber  string `json:"cardNumber" binding:"min=3"`
 	ShabaNumber string `json:"shabaNumber"`
 }
 
 type BankResponse struct {
-	CardName string `json:"cardName"`
+	CardName   string `json:"cardName"`
 	CardNumber string `json:"cardNumber"`
 }

@@ -11,7 +11,7 @@ type BankAccounts struct {
 	BaseModel
 	User        Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	UserID      int
-	CardName       string `gorm:"type:VARCHAR(255)"`
+	CardName    string `gorm:"type:VARCHAR(255)"`
 	CardNumber  string `gorm:"type:VARCHAR(255)"`
 	ShabaNumber string `gorm:"type:VARCHAR(255)"`
 }

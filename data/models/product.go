@@ -6,7 +6,7 @@ type Products struct {
 	UserID     int
 	Title      string `gorm:"type:VARCHAR(255)"`
 	Price      int
-	Category *Categories `gorm:"foreignKey:CategoryID;"`
+	Category   *Categories `gorm:"foreignKey:CategoryID;"`
 	CategoryID int
 	Inventory  int
 }

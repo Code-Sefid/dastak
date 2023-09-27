@@ -209,6 +209,9 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 		OffPercent: factor.OffPercent,
 		Status:     f.ConvertStringToStatus(factor.Status),
 		Products:   products,
+		Account: &dto.AccountResponse{
+			Name: factor.User.FullName,
+		},
 	}
 
 	return factorResponse, nil

@@ -21,9 +21,14 @@ type FactorProductResponse struct {
 	Code       string                   `json:"code"`
 	OffPercent uint                     `json:"offPercent" binding:"required"`
 	Status     int                      `json:"status"`
+	Account    *AccountResponse         `json:"account"`
 	Products   []*ProductFactorResponse `json:"products"`
 }
 
+
+type AccountResponse struct{
+	Name string `json:"name"`
+}
 type FactorItem struct {
 	ID uint `json:"id"`
 }

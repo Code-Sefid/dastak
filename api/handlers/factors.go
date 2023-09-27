@@ -44,17 +44,7 @@ func (h *FactorService) Create(c *gin.Context) {
 }
 
 func (h *FactorService) GetAll(c *gin.Context) {
-	userID := int(c.Value(constants.UserIdKey).(float64))
-
-	res, err := h.service.GetAll(c, userID)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError,
-			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
-		return
-	}
-
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
+	GetByFilter(c, h.service.GetAll)
 }
 
 func (h *FactorService) Update(c *gin.Context) {

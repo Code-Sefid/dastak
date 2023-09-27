@@ -43,7 +43,6 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 	newFactor := models.Factors{
 		Code:       code,
 		UserID:     userId,
-		OffPercent: request.OffPercent,
 		Status:     models.CREATED,
 	}
 
@@ -65,7 +64,7 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 	return nil
 }
 
-func (f *FactorService) GetAll(ctx context.Context, userId int) ([]*dto.FactorResponse, error) {
+func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput,userId int) (*dto.PagedList[dto.FactorResponse], error) {
 	tx := f.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -81,17 +80,44 @@ func (f *FactorService) GetAll(ctx context.Context, userId int) ([]*dto.FactorRe
 		return nil, err
 	}
 
-	var factorResponses []*dto.FactorResponse
-	for _, factor := range factors {
-		factorResponses = append(factorResponses, &dto.FactorResponse{
+	totalRecords := len(factors)
+	pageNumber := req.PageNumber
+	pageSize := req.PageSize
+
+	totalPages := (totalRecords + pageSize - 1) / pageSize
+	hasPreviousPage := pageNumber > 1
+	hasNextPage := pageNumber < totalPages
+
+	startIndex := (pageNumber - 1) * pageSize
+	endIndex := startIndex + pageSize
+
+	if endIndex > totalRecords {
+		endIndex = totalRecords
+	}
+
+	paginatedModel := factors[startIndex:endIndex]
+	paginatedResponse := make([]dto.FactorResponse, len(paginatedModel))
+
+	for i, factor := range paginatedModel {
+		paginatedResponse[i] = dto.FactorResponse{
 			ID:         factor.ID,
 			Code:       factor.Code,
 			OffPercent: factor.OffPercent,
 			Status:     f.ConvertStringToStatus(factor.Status),
-		})
+		}
 	}
 
-	return factorResponses, nil
+	pagedList := dto.PagedList[dto.FactorResponse]{
+		PageNumber:      req.PageNumber,
+		TotalRows:       int64(totalRecords),
+		TotalPages:      int(totalPages),
+		HasPreviousPage: hasPreviousPage,
+		HasNextPage:     hasNextPage,
+		Items:           &paginatedResponse,
+	}
+
+
+	return &pagedList, nil
 }
 
 func (f *FactorService) Update(ctx context.Context, factorID int, request dto.UpdateFactor) error {

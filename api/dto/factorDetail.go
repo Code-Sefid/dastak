@@ -1,6 +1,5 @@
 package dto
 
-import "mime/multipart"
 
 type CreateFactorDetailRequest struct {
 	FactorID   int    `json:"factorId" binding:"required"`
@@ -33,6 +32,7 @@ type FactorDetailResponse struct {
 
 type FactorPayment struct {
 	FactorID      int                   `form:"factorId" binding:"required"`
-	Image         *multipart.FileHeader `form:"image" binding:"required"`
-	PaymentMethod string                `form:"paymentMethod" binding:"required"`
+	FinalPrice 	  float64
+	// Image         *multipart.FileHeader `form:"image" binding:"required"`
+	// PaymentMethod string                `form:"paymentMethod" binding:"required"`
 }

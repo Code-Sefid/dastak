@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/soheilkhaledabdi/dastak/api/dto"
-	"github.com/soheilkhaledabdi/dastak/common"
 	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/data/db"
 	"github.com/soheilkhaledabdi/dastak/data/models"
@@ -67,24 +66,25 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 		return err
 	}
 
-	randomName := common.GenerateRandomWord() + filepath.Ext(req.Image.Filename)
+	// randomName := common.GenerateRandomWord() + filepath.Ext(req.Image.Filename)
 
-	dstPath := filepath.Join("uploads", randomName)
+	// dstPath := filepath.Join("uploads", randomName)
 
-	url := s.base.Config.Server.AppUrl + "/api/v1/files/" + randomName
+	// url := s.base.Config.Server.AppUrl + "/api/v1/files/" + randomName
 
-	err := ctx.SaveUploadedFile(req.Image, dstPath)
-	if err != nil {
-		return err
-	}
+	// err := ctx.SaveUploadedFile(req.Image, dstPath)
+	// if err != nil {
+	// 	return err
+	// }
 
 	FactorPayment := models.FactorPayment{
 		FactorID:      req.FactorID,
-		FactorImage:   url,
-		PaymentMethod: models.PaymentMethod(req.PaymentMethod),
+		FinalPrice: req.FinalPrice,
+		// FactorImage:   url,
+		// PaymentMethod: models.PaymentMethod(req.PaymentMethod),
 	}
 
-	err = tx.Create(&FactorPayment).Error
+	err := tx.Create(&FactorPayment).Error
 	if err != nil {
 		return err
 	}

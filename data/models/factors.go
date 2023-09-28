@@ -42,6 +42,8 @@ type FactorPayment struct {
 
 	FactorImage   string
 	PaymentMethod PaymentMethod `gorm:"type:VARCHAR(255)"`
+	FinalPrice float64
+	Status string
 }
 
 type FactorDetail struct {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
 	"github.com/soheilkhaledabdi/dastak/api/helper"
@@ -28,41 +29,55 @@ func NewFactorService(cfg *config.Config) *FactorService {
 	}
 }
 
-func (f *FactorService) Create(ctx context.Context, userId int, request dto.CreateFactor) error {
-	tx := f.database.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+func (f *FactorService) Create(ctx context.Context, userId int, request dto.CreateFactor) (*dto.FactorProductResponse, error) {
+    tx := f.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
 
-	code := helper.GenerateFactorCode()
+    code := helper.GenerateFactorCode()
 
-	newFactor := models.Factors{
-		Code:       code,
-		UserID:     userId,
-		Status:     models.CREATED,
-	}
+    newFactor := models.Factors{
+        Code:   code,
+        UserID: userId,
+        Status: models.CREATED,
+		OffPercent: request.OffPercent,
+    }
 
-	err := tx.Create(&newFactor).Error
-	if err != nil {
-		return err
-	}
+    err := tx.Create(&newFactor).Error
+    if err != nil {
+        return nil, err
+    }
 
-	for _, product := range request.Products {
-		err := tx.Create(&models.FactorProducts{
-			ProductID: int(product),
-			FactorID:  int(newFactor.ID),
-		}).Error
-		if err != nil {
-			return err
-		}
-	}
+    for _, product := range request.Products {
+        err := tx.Create(&models.FactorProducts{
+            ProductID: int(product),
+            FactorID:  int(newFactor.ID),
+        }).Error
+        if err != nil {
+            return nil, err
+        }
+    }
+	tx.Commit()
 
-	return nil
+
+    // Attempt to retrieve the created factor by its code.
+    factorResponse, err := f.GetByCode(ctx, code)
+    if err != nil {
+        // Check if the error is due to "record not found."
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, err
+        }
+        return nil, err
+    }
+
+    return factorResponse, nil
 }
+
 
 func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput,userId int) (*dto.PagedList[dto.FactorResponse], error) {
 	tx := f.database.WithContext(ctx).Begin()

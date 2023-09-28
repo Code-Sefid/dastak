@@ -43,6 +43,9 @@ func InitServer() {
 
 		customer := router.Group("factor-detail")
 		routers.Customer(customer, config)
+
+		payment := router.Group("payment")
+		routers.Payment(payment, config)
 	}
 
 	r.Run(fmt.Sprintf(":%s", config.Server.InternalPort))

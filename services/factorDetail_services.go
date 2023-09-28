@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/soheilkhaledabdi/dastak/api/dto"

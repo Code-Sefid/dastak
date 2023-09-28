@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
 	"github.com/soheilkhaledabdi/dastak/api/helper"

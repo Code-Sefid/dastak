@@ -65,13 +65,8 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 	tx.Commit()
 
 
-    // Attempt to retrieve the created factor by its code.
     factorResponse, err := f.GetByCode(ctx, code)
     if err != nil {
-        // Check if the error is due to "record not found."
-        if errors.Is(err, gorm.ErrRecordNotFound) {
-            return nil, err
-        }
         return nil, err
     }
 

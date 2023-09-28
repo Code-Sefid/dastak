@@ -1,6 +1,5 @@
 package dto
 
-
 type CreateFactorDetailRequest struct {
 	FactorID   int    `json:"factorId" binding:"required"`
 	FullName   string `json:"fullName" binding:"required"`
@@ -31,8 +30,8 @@ type FactorDetailResponse struct {
 }
 
 type FactorPayment struct {
-	FactorID      int                   `form:"factorId" binding:"required"`
-	FinalPrice 	  float64
+	FactorID   int     `form:"factorId" binding:"required"`
+	FinalPrice float64 `json:"finalPrice"`
 	// Image         *multipart.FileHeader `form:"image" binding:"required"`
 	// PaymentMethod string                `form:"paymentMethod" binding:"required"`
 }

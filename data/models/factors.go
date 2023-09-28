@@ -4,16 +4,15 @@ type FactorStatus string
 type PaymentMethod string
 
 const (
-	PAID    FactorStatus = "paid"
-	NOTPAID FactorStatus = "notPaid"
-	CANCEL  FactorStatus = "cancel"
-	CREATED FactorStatus = "created"
-	PENDING FactorStatus = "pending"
-	EXPIRED FactorStatus = "expired"
+	PAID     FactorStatus = "paid"
+	NOTPAID  FactorStatus = "notPaid"
+	CANCEL   FactorStatus = "cancel"
+	CREATED  FactorStatus = "created"
+	PENDING  FactorStatus = "pending"
+	EXPIRED  FactorStatus = "expired"
 	ACCEPTED FactorStatus = "accepted"
-	POSTED FactorStatus = "posted"
-	FINISH FactorStatus = "finish"
-
+	POSTED   FactorStatus = "posted"
+	FINISH   FactorStatus = "finish"
 
 	Offline PaymentMethod = "offline"
 	Online  PaymentMethod = "online"
@@ -42,8 +41,8 @@ type FactorPayment struct {
 
 	FactorImage   string
 	PaymentMethod PaymentMethod `gorm:"type:VARCHAR(255)"`
-	FinalPrice float64
-	Status string
+	FinalPrice    float64
+	Status        string
 }
 
 type FactorDetail struct {

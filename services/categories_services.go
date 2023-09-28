@@ -24,8 +24,8 @@ func NewCategoriesService(cfg *config.Config) *CategoriesService {
 }
 
 // Create
-func (s *CategoriesService) Create(ctx context.Context, req *dto.CreateCategoriesRequest,userId int) (*dto.CategoriesResponse, error) {
-	return s.base.CreateByUserId(ctx, req,userId)
+func (s *CategoriesService) Create(ctx context.Context, req *dto.CreateCategoriesRequest, userId int) (*dto.CategoriesResponse, error) {
+	return s.base.CreateByUserId(ctx, req, userId)
 }
 
 // Update
@@ -44,11 +44,11 @@ func (s *CategoriesService) GetById(ctx context.Context, id int) (*dto.Categorie
 }
 
 // Get By Filter
-func (s *CategoriesService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter,userId int) (*dto.PagedList[dto.CategoriesResponse], error) {
-	return s.base.GetByFilter(ctx, req , userId)
+func (s *CategoriesService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter, userId int) (*dto.PagedList[dto.CategoriesResponse], error) {
+	return s.base.GetByFilter(ctx, req, userId)
 }
 
 // Get By Filter
-func (s *CategoriesService) GetAll(ctx context.Context, req *dto.PaginationInputWithFilter,userId int) (*dto.PagedList[dto.CategoriesResponse], error) {
-	return s.base.GetByFilter(ctx, req,userId)
+func (s *CategoriesService) GetAll(ctx context.Context, req *dto.PaginationInputWithFilter, userId int) (*dto.PagedList[dto.CategoriesResponse], error) {
+	return s.base.GetByFilter(ctx, req, userId)
 }

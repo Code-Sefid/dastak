@@ -32,7 +32,7 @@ func (h *FactorService) Create(c *gin.Context) {
 			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
 		return
 	}
-	res , err := h.service.Create(c, userID, *req)
+	res, err := h.service.Create(c, userID, *req)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,

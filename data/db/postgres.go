@@ -21,7 +21,7 @@ func InitDb(cfg *config.Config) error {
 	dbClient, err = gorm.Open(postgres.Open(cnn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
-	
+
 	if err != nil {
 		return err
 	}

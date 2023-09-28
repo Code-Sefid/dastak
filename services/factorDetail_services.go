@@ -43,8 +43,8 @@ func (s *FactorDetailService) GetById(ctx context.Context, id int) (*dto.FactorD
 }
 
 // Get By Filter
-func (s *FactorDetailService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter,userId int) (*dto.PagedList[dto.FactorDetailResponse], error) {
-	return s.base.GetByFilter(ctx, req , userId)
+func (s *FactorDetailService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter, userId int) (*dto.PagedList[dto.FactorDetailResponse], error) {
+	return s.base.GetByFilter(ctx, req, userId)
 }
 
 func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPayment) error {
@@ -77,7 +77,7 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 	// }
 
 	FactorPayment := models.FactorPayment{
-		FactorID:      req.FactorID,
+		FactorID:   req.FactorID,
 		FinalPrice: req.FinalPrice,
 		// FactorImage:   url,
 		// PaymentMethod: models.PaymentMethod(req.PaymentMethod),

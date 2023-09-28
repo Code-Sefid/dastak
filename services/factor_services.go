@@ -29,51 +29,49 @@ func NewFactorService(cfg *config.Config) *FactorService {
 }
 
 func (f *FactorService) Create(ctx context.Context, userId int, request dto.CreateFactor) (*dto.FactorProductResponse, error) {
-    tx := f.database.WithContext(ctx).Begin()
-    defer func() {
-        if r := recover(); r != nil {
-            tx.Rollback()
-        } else {
-            tx.Commit()
-        }
-    }()
+	tx := f.database.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
 
-    code := helper.GenerateFactorCode()
+	code := helper.GenerateFactorCode()
 
-    newFactor := models.Factors{
-        Code:   code,
-        UserID: userId,
-        Status: models.CREATED,
+	newFactor := models.Factors{
+		Code:       code,
+		UserID:     userId,
+		Status:     models.CREATED,
 		OffPercent: request.OffPercent,
-    }
+	}
 
-    err := tx.Create(&newFactor).Error
-    if err != nil {
-        return nil, err
-    }
+	err := tx.Create(&newFactor).Error
+	if err != nil {
+		return nil, err
+	}
 
-    for _, product := range request.Products {
-        err := tx.Create(&models.FactorProducts{
-            ProductID: int(product),
-            FactorID:  int(newFactor.ID),
-        }).Error
-        if err != nil {
-            return nil, err
-        }
-    }
+	for _, product := range request.Products {
+		err := tx.Create(&models.FactorProducts{
+			ProductID: int(product),
+			FactorID:  int(newFactor.ID),
+		}).Error
+		if err != nil {
+			return nil, err
+		}
+	}
 	tx.Commit()
 
+	factorResponse, err := f.GetByCode(ctx, code)
+	if err != nil {
+		return nil, err
+	}
 
-    factorResponse, err := f.GetByCode(ctx, code)
-    if err != nil {
-        return nil, err
-    }
-
-    return factorResponse, nil
+	return factorResponse, nil
 }
 
-
-func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput,userId int) (*dto.PagedList[dto.FactorResponse], error) {
+func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput, userId int) (*dto.PagedList[dto.FactorResponse], error) {
 	tx := f.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -124,7 +122,6 @@ func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput,use
 		HasNextPage:     hasNextPage,
 		Items:           &paginatedResponse,
 	}
-
 
 	return &pagedList, nil
 }
@@ -285,7 +282,7 @@ func (f *FactorService) ConvertIntToStatus(status int) models.FactorStatus {
 		return models.EXPIRED
 	case 5:
 		return models.NOTPAID
-	case 6 :
+	case 6:
 		return models.ACCEPTED
 	case 7:
 		return models.POSTED
@@ -312,7 +309,7 @@ func (f *FactorService) ConvertStringToStatus(status models.FactorStatus) int {
 		return 6
 	case models.POSTED:
 		return 7
-	case models.FINISH : 
+	case models.FINISH:
 		return 8
 	default:
 		return 1

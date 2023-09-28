@@ -89,11 +89,11 @@ func (s *ProductsService) GetById(ctx context.Context, id int) (*dto.ProductsRes
 }
 
 // Get By Filter
-func (s *ProductsService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter , userId int) (*dto.PagedList[dto.ProductsResponse], error) {
-	return s.base.GetByFilter(ctx, req , userId)
+func (s *ProductsService) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter, userId int) (*dto.PagedList[dto.ProductsResponse], error) {
+	return s.base.GetByFilter(ctx, req, userId)
 }
 
 // Get By Filter
-func (s *ProductsService) GetAll(ctx context.Context, req *dto.PaginationInputWithFilter,userId int) (*dto.PagedList[dto.ProductsResponse], error) {
-	return s.base.GetByFilter(ctx, req , userId)
+func (s *ProductsService) GetAll(ctx context.Context, req *dto.PaginationInputWithFilter, userId int) (*dto.PagedList[dto.ProductsResponse], error) {
+	return s.base.GetByFilter(ctx, req, userId)
 }

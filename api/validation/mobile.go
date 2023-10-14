@@ -16,7 +16,7 @@ func IranianMobileNumberValidator(fld validator.FieldLevel) bool {
 	return IranianMobileNumberValidate(value)
 }
 
-const iranianMobileNumberPattern string = `^09(1[0-9]|2[0-2]|3[0-9]|9[0-9])[0-9]{7}$`
+const iranianMobileNumberPattern string = `^(09|09[0-3,9])[0-9]{8}$`
 
 func IranianMobileNumberValidate(mobileNumber string) bool {
 	res, err := regexp.MatchString(iranianMobileNumberPattern, mobileNumber)

@@ -28,7 +28,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 	token, alert, status, err := h.service.Login(req)
@@ -52,7 +52,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 	token, alert, status, err := h.service.Register(c, req)
@@ -76,7 +76,7 @@ func (h *AuthHandler) ResendPassword(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 	alert, status, err := h.service.ResendPassword(c, *req)
@@ -94,6 +94,30 @@ func (h *AuthHandler) ResendPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(status, true, alert.Message))
 }
+
+func (h *AuthHandler) CheckMobile(c *gin.Context) {
+	req := new(*dto.Mobile)
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest,
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
+		return
+	}
+	alert, status, err := h.service.CheckMobile(*req)
+
+	if alert != nil && err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			helper.GenerateBaseResponseWithError(status, err, alert.Message))
+		return
+	} else if err != nil && alert == nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized,
+			helper.GenerateBaseResponseWithError(status, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
+		return
+	}
+
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(status, true, alert.Message))
+}
+
 
 func (h *AuthHandler) Logout(c *gin.Context) {
 	auth := c.GetHeader(constants.AuthorizationHeaderKey)

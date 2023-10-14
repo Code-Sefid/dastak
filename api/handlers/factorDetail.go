@@ -41,7 +41,7 @@ func (p *FactorDetailHandler) FactorPayment(c *gin.Context) {
 	err := c.ShouldBind(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا داده ها را به درستی پر کنید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 

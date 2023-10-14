@@ -10,7 +10,7 @@ import (
 func Bank(r *gin.RouterGroup, cfg *config.Config) {
 	h := handlers.NewBankHandler(cfg)
 
-	r.POST("/", middlewares.Authentication(cfg), h.Create)
-	r.PUT("/:id", middlewares.Authentication(cfg), h.Update)
-	r.GET("/", middlewares.Authentication(cfg), h.GetByUserId)
+	r.POST("", middlewares.Authentication(cfg), h.Create)
+	r.PUT(":id", middlewares.Authentication(cfg), h.Update)
+	r.GET("", middlewares.Authentication(cfg), h.GetByUserId)
 }

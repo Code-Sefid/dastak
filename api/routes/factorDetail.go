@@ -9,9 +9,9 @@ import (
 func Customer(r *gin.RouterGroup, cfg *config.Config) {
 	h := handlers.NewFactorDetailHandler(cfg)
 
-	r.POST("/", h.Create)
-	r.PUT("/:id", h.Update)
-	r.GET("/:id", h.GetById)
+	r.POST("", h.Create)
+	r.PUT(":id", h.Update)
+	r.GET(":id", h.GetById)
 	r.POST("/get-by-filter", h.GetByFilter)
 	r.POST("/payment", h.FactorPayment)
 }

@@ -8,6 +8,6 @@ import (
 
 func Payment(r *gin.RouterGroup, cfg *config.Config) {
 	h := handlers.NewPaymentHandler(cfg)
-	r.POST("/", h.Create)
+	r.POST("", h.Create)
 	r.POST("/check", h.Check)
 }

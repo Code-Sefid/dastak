@@ -21,6 +21,7 @@ func InitServer() {
 	r.Use(middlewares.Cors())
 	RegisterValidators()
 	r.Use(gin.Logger(), gin.Recovery())
+	r.RedirectTrailingSlash = false
 
 	router := r.Group("api/v1")
 	{

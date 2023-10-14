@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/constants"
 	"github.com/soheilkhaledabdi/dastak/pkg/logging"
+	"gorm.io/gorm"
 )
 
 var logger = logging.NewLogger(config.GetConfig())
@@ -19,14 +21,14 @@ func Create[Ti any, To any](c *gin.Context, caller func(ctx context.Context, req
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
 	res, err := caller(c, req)
 	if err != nil {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 	c.JSON(http.StatusCreated, helper.GenerateBaseResponse(res, true, ""))
@@ -38,67 +40,82 @@ func CreateByUserId[Ti any, To any](c *gin.Context, caller func(ctx context.Cont
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
 	res, err := caller(c, *req, userID)
 	if err != nil {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 	c.JSON(http.StatusCreated, helper.GenerateBaseResponse(res, true, ""))
 }
 
-func Update[Ti any, To any](c *gin.Context, caller func(ctx context.Context, id int, req *Ti) (*To, error)) {
+func Update[Ti any, To any](c *gin.Context, caller func(ctx context.Context, id int, userID int, req *Ti) (*To, error)) {
+	userID := int(c.Value(constants.UserIdKey).(float64))
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	req := new(Ti)
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
-	res, err := caller(c, id, req)
-	if err != nil {
+	res, err := caller(c, id, userID, req)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+		return
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.AbortWithStatusJSON(http.StatusNotFound,
+			helper.GenerateBaseResponseWithError(false, err, "موردی با این مشخصات یافت نشد"))
 		return
 	}
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
 }
 
-func Delete(c *gin.Context, caller func(ctx context.Context, id int) error) {
+func Delete(c *gin.Context, caller func(ctx context.Context, id int , userID int) error) {
+	userID := int(c.Value(constants.UserIdKey).(float64))
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	if id == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound,
-			helper.GenerateBaseResponse(nil, false, "Internal error"))
+			helper.GenerateBaseResponse(nil, false, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
-	err := caller(c, id)
-	if err != nil {
+	err := caller(c, id , userID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+		return
+	}else if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.AbortWithStatusJSON(http.StatusNotFound,
+			helper.GenerateBaseResponseWithError(false, err, "موردی با این مشخصات یافت نشد"))
 		return
 	}
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }
 
-func GetById[To any](c *gin.Context, caller func(c context.Context, id int) (*To, error)) {
+func GetById[To any](c *gin.Context, caller func(c context.Context, id int ,userID int) (*To, error)) {
+	userID := int(c.Value(constants.UserIdKey).(float64))
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	if id == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound,
-			helper.GenerateBaseResponse(nil, false, "Internal error"))
+			helper.GenerateBaseResponse(nil, false, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
-	res, err := caller(c, id)
-	if err != nil {
+	res, err := caller(c, id,userID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+		return
+	}else if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.AbortWithStatusJSON(http.StatusNotFound,
+			helper.GenerateBaseResponseWithError(false, err, "موردی با این مشخصات یافت نشد"))
 		return
 	}
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
@@ -108,14 +125,14 @@ func GetByUserId[To any](c *gin.Context, caller func(c context.Context, id int) 
 	userID := int(c.Value(constants.UserIdKey).(float64))
 	if userID == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound,
-			helper.GenerateBaseResponse(nil, false, "Internal error"))
+			helper.GenerateBaseResponse(nil, false, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
 	res, err := caller(c, userID)
 	if err != nil {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
@@ -127,14 +144,14 @@ func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 
 	res, err := caller(c, req, userID)
 	if err != nil {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
-			helper.GenerateBaseResponseWithError(false, err, "Internal error"))
+			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
 	}
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))

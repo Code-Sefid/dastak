@@ -32,6 +32,9 @@ type BaseService[T any, Tc any, Tu any, Tr any] struct {
 	Config   *config.Config
 	Preloads []preload
 }
+type Updater interface {
+    UpdateFields(updateData interface{}) error
+}
 
 func NewBaseService[T any, Tc any, Tu any, Tr any](cfg *config.Config) *BaseService[T, Tc, Tu, Tr] {
 	return &BaseService[T, Tc, Tu, Tr]{
@@ -53,7 +56,7 @@ func (s *BaseService[T, Tc, Tu, Tr]) Create(ctx context.Context, req *Tc) (*Tr, 
 	}
 	tx.Commit()
 	bm, _ := common.TypeConverter[models.BaseModel](model)
-	return s.GetById(ctx, bm.ID)
+	return s.GetByIdWithoutUserID(ctx, bm.ID)
 }
 
 func (s *BaseService[T, Tc, Tu, Tr]) CreateByUserId(ctx context.Context, req *Tc, userID int) (*Tr, error) {
@@ -75,10 +78,11 @@ func (s *BaseService[T, Tc, Tu, Tr]) CreateByUserId(ctx context.Context, req *Tc
 	tx.Commit()
 
 	bm, _ := common.TypeConverter[models.BaseModel](model)
-	return s.GetById(ctx, bm.ID)
+	return s.GetById(ctx, bm.ID,userID)
 }
 
-func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, req *Tu) (*Tr, error) {
+
+func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int , userID int , req *Tu) (*Tr, error) {
 
 	updateMap, _ := common.TypeConverter[map[string]interface{}](req)
 	snakeMap := map[string]interface{}{}
@@ -90,7 +94,7 @@ func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, req *Tu
 	model := new(T)
 	tx := s.Database.WithContext(ctx).Begin()
 	if err := tx.Model(model).
-		Where("id = ? and deleted_by is null", id).
+		Where("id = ? and user_id = ? AND deleted_by is null", id,userID).
 		Updates(snakeMap).
 		Error; err != nil {
 		tx.Rollback()
@@ -98,11 +102,12 @@ func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, req *Tu
 		return nil, err
 	}
 	tx.Commit()
-	return s.GetById(ctx, id)
+	return s.GetById(ctx, id,userID)
 
 }
 
-func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int) error {
+
+func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int,userID int) error {
 	tx := s.Database.WithContext(ctx).Begin()
 
 	model := new(T)
@@ -115,14 +120,14 @@ func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int) error {
 	if ctx.Value(constants.UserIdKey) == nil {
 		return &service_errors.ServiceError{EndUserMessage: service_errors.PermissionDenied}
 	}
-	if cnt := tx.
+	if err := tx.
 		Model(model).
-		Where("id = ? and deleted_by is null", id).
+		Where("id = ? AND user_id = ? AND deleted_by is null", id,userID).
 		Updates(deleteMap).
-		RowsAffected; cnt == 0 {
+		Error; err != nil {
 		tx.Rollback()
 		s.Logger.Error(logging.Postgres, logging.Update, service_errors.RecordNotFound, nil)
-		return &service_errors.ServiceError{EndUserMessage: service_errors.RecordNotFound}
+		return err
 	}
 	tx.Commit()
 	return nil
@@ -141,17 +146,35 @@ func (s *BaseService[T, Tc, Tu, Tr]) GetByUserId(ctx context.Context, userId int
 	return common.TypeConverter[Tr](model)
 }
 
-func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int) (*Tr, error) {
+func (s *BaseService[T, Tc, Tu, Tr]) GetByIdWithoutUserID(ctx context.Context, id int) (*Tr, error) {
 	model := new(T)
 	db := Preload(s.Database, s.Preloads)
 	err := db.
-		Where("id = ? and deleted_by is null", id).
+		Where("id = ? AND deleted_by is null", id).
 		First(model).
 		Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return common.TypeConverter[Tr](model)
+}
+
+func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int,userID int) (*Tr, error) {
+	model := new(T)
+	db := Preload(s.Database, s.Preloads)
+	err := db.
+		Where("id = ? AND user_id = ? AND deleted_by is null", id,userID).
+		First(model).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
 		}
 		return nil, err
 	}

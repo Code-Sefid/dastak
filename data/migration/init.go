@@ -45,7 +45,7 @@ func createTables(database *gorm.DB) {
 		tables = addNewTable(database, model, tables)
 	}
 
-	err := database.Migrator().CreateTable(tables...)
+    err := database.AutoMigrate(modelsList...)
 	if err != nil {
 		logger.Error(logging.Postgres, logging.Migration, err.Error(), nil)
 	}

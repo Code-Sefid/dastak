@@ -35,6 +35,8 @@ func TranslateValidationError(tag string) string {
 		return "بیشتر از حد مجاز است"
 	case "len":
 		return "باید دقیقاً طول مشخص شده داشته باشد"
+	case "mobile":
+		return "شماره موبایل معتبر نیست"
 	default:
 		return "خطا در اعتبارسنجی"
 	}

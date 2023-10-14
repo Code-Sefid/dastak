@@ -130,9 +130,13 @@ func GetByUserId[To any](c *gin.Context, caller func(c context.Context, id int) 
 	}
 
 	res, err := caller(c, userID)
-	if err != nil {
+	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
 			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+		return
+	}else if errors.Is(err,gorm.ErrRecordNotFound){
+		c.AbortWithStatusJSON(http.StatusNotFound,
+			helper.GenerateBaseResponseWithError(false, err, ""))
 		return
 	}
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))

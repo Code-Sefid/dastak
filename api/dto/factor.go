@@ -1,7 +1,7 @@
 package dto
 
 type CreateFactor struct {
-	Products   []int `json:"products" binding:"required"`
+	Products   []FactorItem `json:"products" binding:"required"`
 	OffPercent uint  `json:"offPercent"`
 }
 
@@ -30,4 +30,5 @@ type AccountResponse struct {
 }
 type FactorItem struct {
 	ID uint `json:"id"`
+	Count int `json:"count"`
 }

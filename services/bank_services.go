@@ -27,43 +27,51 @@ func NewBankService(cfg *config.Config) *BankService {
 
 // Create
 func (s *BankService) CreateOrUpdate(ctx context.Context, req *dto.CreateBankRequest, userId int) (*dto.BankResponse, error) {
-	tx := s.base.Database.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+    tx := s.base.Database.WithContext(ctx).Begin()
+    var bank models.BankAccounts
 
-	var bank models.BankAccounts
-	err := tx.Where("user_id = ?", userId).First(&bank).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			bank := models.BankAccounts{
-				UserID:      userId,
-				CardName:   req.CardName,
-				CardNumber: req.CardNumber,
-				ShabaNumber: req.ShabaNumber,
-			}
-			err := tx.Create(&bank).Error
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	bank.CardName = req.CardName
-	bank.CardNumber = req.CardNumber
-	bank.ShabaNumber = req.ShabaNumber
-	err = tx.Save(&bank).Error
-	if err != nil {
-		return nil, err
-	}
-	return &dto.BankResponse{
-		CardName:   bank.CardName,
-		CardNumber: bank.CardNumber,
-	}, nil
+    // Defer the transaction handling
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    // Attempt to find a bank account for the given user
+    err := tx.Where("user_id = ?", userId).First(&bank).Error
+    if err != nil {
+        if !errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, err
+        }
+
+        // Create a new bank account if it doesn't exist
+        bank = models.BankAccounts{
+            UserID:      userId,
+            CardName:   req.CardName,
+            CardNumber: req.CardNumber,
+        }
+
+        if err := tx.Create(&bank).Error; err != nil {
+            return nil, err
+        }
+    } else {
+        // Update the existing bank account
+        bank.CardName = req.CardName
+        bank.CardNumber = req.CardNumber
+
+        if err := tx.Save(&bank).Error; err != nil {
+            return nil, err
+        }
+    }
+
+    return &dto.BankResponse{
+        CardName:   bank.CardName,
+        CardNumber: bank.CardNumber,
+    }, nil
 }
+
 
 // Update
 func (s *BankService) Update(ctx context.Context, id int, userID int ,req *dto.UpdateBankRequest) (*dto.BankResponse, error) {

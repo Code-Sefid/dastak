@@ -66,9 +66,26 @@ func (s *BankService) CreateOrUpdate(ctx context.Context, req *dto.CreateBankReq
         }
     }
 
+    var wallet models.Wallet
+    err = tx.Model(&models.Wallet{}).Where("user_id = ?", userId).First(&wallet).Error
+    if err != nil {
+        if !errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, err
+        }
+
+        wallet = models.Wallet{
+            UserId:      userId,
+            Amount: 0,
+        }
+
+        if err := tx.Create(&wallet).Error; err != nil {
+            return nil, err
+        }
+    }
     return &dto.BankResponse{
         CardName:   bank.CardName,
         CardNumber: bank.CardNumber,
+        Amount:    wallet.Amount,
     }, nil
 }
 
@@ -80,5 +97,32 @@ func (s *BankService) Update(ctx context.Context, id int, userID int ,req *dto.U
 
 // Get By Id
 func (s *BankService) GetByUserId(ctx context.Context, userId int) (*dto.BankResponse, error) {
-	return s.base.GetByUserId(ctx, userId)
+    tx := s.base.Database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    var wallet models.Wallet
+    err := tx.Model(&models.Wallet{}).Where("user_id = ?", userId).First(&wallet).Error
+    if err != nil {
+        if !errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, err
+        }
+
+        wallet = models.Wallet{
+            UserId:      userId,
+            Amount: 0,
+        }
+
+        if err := tx.Create(&wallet).Error; err != nil {
+            return nil, err
+        }
+    }
+	response , err :=  s.base.GetByUserId(ctx, userId)
+    response.Amount = wallet.Amount
+    return response , err
 }

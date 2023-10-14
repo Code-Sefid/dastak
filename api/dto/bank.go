@@ -15,4 +15,5 @@ type UpdateBankRequest struct {
 type BankResponse struct {
 	CardName   string `json:"cardName"`
 	CardNumber string `json:"cardNumber"`
+	Amount     int    `json:"amount"`
 }

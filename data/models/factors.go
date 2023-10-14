@@ -33,6 +33,8 @@ type FactorProducts struct {
 
 	Factor   Factors `gorm:"foreignKey:FactorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	FactorID int
+
+	Count int  `gorm:"column:count"`
 }
 
 type FactorPayment struct {

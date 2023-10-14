@@ -43,10 +43,10 @@ func (a *AuthService) CheckMobile(request *dto.Mobile) (*dto.Alert, bool, error)
 		return nil, false, err
 	}
 	if !exsit {
-		return &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, true, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		return &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
 
-	return &dto.Alert{Message: "شماره موبایل شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+	return &dto.Alert{Message: "شماره موبایل شما وجود دارد"}, true, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 }
 
 func (a *AuthService) Login(request *dto.Login) (*dto.TokenDetail, *dto.Alert, bool, error) {

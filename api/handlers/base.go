@@ -139,7 +139,11 @@ func GetByUserId[To any](c *gin.Context, caller func(c context.Context, id int) 
 			helper.GenerateBaseResponseWithError(false, err, ""))
 		return
 	}
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
+	if res != nil {
+		c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
+		return
+	}
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, false, ""))
 }
 
 func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, req *Ti, userId int) (*To, error)) {

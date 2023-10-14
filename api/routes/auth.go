@@ -12,5 +12,6 @@ func Auth(router *gin.RouterGroup, cfg *config.Config) {
 	router.POST("/register", h.Register)
 	router.POST("/login", h.Login)
 	router.POST("/resend-password", h.ResendPassword)
+	router.POST("/check-mobile", h.CheckMobile)
 	router.POST("/logout", middlewares.Authentication(cfg), h.Logout)
 }

@@ -35,6 +35,20 @@ func NewAuthService(cfg *config.Config) *AuthService {
 	}
 }
 
+
+func (a *AuthService) CheckMobile(request *dto.Mobile) (*dto.Alert, bool, error) {
+
+	exsit, err := a.ExistsByMobile(request.Mobile)
+	if err != nil {
+		return nil, false, err
+	}
+	if !exsit {
+		return &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, true, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+	}
+
+	return &dto.Alert{Message: "شماره موبایل شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+}
+
 func (a *AuthService) Login(request *dto.Login) (*dto.TokenDetail, *dto.Alert, bool, error) {
 
 	exsit, err := a.ExistsByMobile(request.Mobile)

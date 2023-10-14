@@ -106,7 +106,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		return false, &dto.Alert{Message: "فاکتور شما وجود ندارن یا به مشکل خورده"},err
 	}
 
-	merchant := "zibal"
+	merchant := "fe7517b43c824da2a5ed7000845595b2"
 	data := `{
         "merchant" : "` + merchant + `",
         "trackId" : ` + req.TrackID + `

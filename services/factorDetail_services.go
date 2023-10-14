@@ -33,13 +33,13 @@ func (s *FactorDetailService) Create(ctx context.Context, req *dto.CreateFactorD
 }
 
 // Update
-func (s *FactorDetailService) Update(ctx context.Context, id int, req *dto.UpdateFactorDetailRequest) (*dto.FactorDetailResponse, error) {
-	return s.base.Update(ctx, id, req)
+func (s *FactorDetailService) Update(ctx context.Context, id int,userID int, req *dto.UpdateFactorDetailRequest) (*dto.FactorDetailResponse, error) {
+	return s.base.Update(ctx, id, userID , req)
 }
 
 // Get By Id
-func (s *FactorDetailService) GetById(ctx context.Context, id int) (*dto.FactorDetailResponse, error) {
-	return s.base.GetById(ctx, id)
+func (s *FactorDetailService) GetById(ctx context.Context, id int,userID int) (*dto.FactorDetailResponse, error) {
+	return s.base.GetById(ctx, id,userID)
 }
 
 // Get By Filter

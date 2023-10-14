@@ -74,18 +74,18 @@ func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreatePro
 }
 
 // Update
-func (s *ProductsService) Update(ctx context.Context, id int, req *dto.UpdateProductsRequest) (*dto.ProductsResponse, error) {
-	return s.base.Update(ctx, id, req)
+func (s *ProductsService) Update(ctx context.Context, id int,userID int, req *dto.UpdateProductsRequest) (*dto.ProductsResponse, error) {
+	return s.base.Update(ctx, id,userID, req)
 }
 
 // Delete
-func (s *ProductsService) Delete(ctx context.Context, id int) error {
-	return s.base.Delete(ctx, id)
+func (s *ProductsService) Delete(ctx context.Context, id int,userID int) error {
+	return s.base.Delete(ctx, id,userID)
 }
 
 // Get By Id
-func (s *ProductsService) GetById(ctx context.Context, id int) (*dto.ProductsResponse, error) {
-	return s.base.GetById(ctx, id)
+func (s *ProductsService) GetById(ctx context.Context, id int,userID int) (*dto.ProductsResponse, error) {
+	return s.base.GetById(ctx, id,userID)
 }
 
 // Get By Filter

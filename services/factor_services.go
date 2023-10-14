@@ -54,8 +54,9 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 
 	for _, product := range request.Products {
 		err := tx.Create(&models.FactorProducts{
-			ProductID: int(product),
+			ProductID: int(product.ID),
 			FactorID:  int(newFactor.ID),
+			Count: product.Count,
 		}).Error
 		if err != nil {
 			return nil, err
@@ -206,6 +207,7 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 			ID:    item.Product.ID,
 			Title: item.Product.Title,
 			Price: float64(item.Product.Price),
+			Count: item.Count,
 		})
 	}
 
@@ -260,6 +262,7 @@ func (f *FactorService) AddItem(ctx context.Context, factorID int, request dto.F
 	factorItem := &models.FactorProducts{
 		ProductID: int(request.ID),
 		FactorID:  factorID,
+		Count:    request.Count,
 	}
 
 	if err := tx.Create(factorItem).Error; err != nil {

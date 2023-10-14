@@ -29,18 +29,18 @@ func (s *CategoriesService) Create(ctx context.Context, req *dto.CreateCategorie
 }
 
 // Update
-func (s *CategoriesService) Update(ctx context.Context, id int, req *dto.UpdateCategoriesRequest) (*dto.CategoriesResponse, error) {
-	return s.base.Update(ctx, id, req)
+func (s *CategoriesService) Update(ctx context.Context, id int,userID int , req *dto.UpdateCategoriesRequest) (*dto.CategoriesResponse, error) {
+	return s.base.Update(ctx, id, userID,req)
 }
 
 // Delete
-func (s *CategoriesService) Delete(ctx context.Context, id int) error {
-	return s.base.Delete(ctx, id)
+func (s *CategoriesService) Delete(ctx context.Context, id int,userID int) error {
+	return s.base.Delete(ctx, id,userID)
 }
 
 // Get By Id
-func (s *CategoriesService) GetById(ctx context.Context, id int) (*dto.CategoriesResponse, error) {
-	return s.base.GetById(ctx, id)
+func (s *CategoriesService) GetById(ctx context.Context, id int,UserID int) (*dto.CategoriesResponse, error) {
+	return s.base.GetById(ctx, id,UserID)
 }
 
 // Get By Filter

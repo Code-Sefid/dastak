@@ -39,7 +39,7 @@ func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreatePro
 	}
 
 	if req.CategoryID != nil {
-		product.CategoryID = *req.CategoryID
+		product.CategoryID = req.CategoryID
 	}
 
 	if err := tx.Create(&product).Error; err != nil {
@@ -63,6 +63,10 @@ func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreatePro
 	}
 
 	tx.Commit()
+
+	if req.CategoryID == nil {
+		categoryResponse = nil
+	}
 
 	return &dto.ProductsResponse{
 		ID:        productResponse.ID,

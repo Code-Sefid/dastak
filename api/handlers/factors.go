@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/constants"
 	"github.com/soheilkhaledabdi/dastak/services"
+	"gorm.io/gorm"
 )
 
 type FactorService struct {
@@ -84,9 +86,13 @@ func (h *FactorService) GetByCode(c *gin.Context) {
 	code := c.Params.ByName("code")
 
 	res, err := h.service.GetByCode(c, code)
-	if err != nil {
+	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
+		return
+	}else if errors.Is(err,gorm.ErrRecordNotFound){
+		c.AbortWithStatusJSON(http.StatusNotFound,
+			helper.GenerateBaseResponseWithError(false, err, "فاکتوری با این کد پیدا نشد"))
 		return
 	}
 

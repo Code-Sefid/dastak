@@ -1,7 +1,7 @@
 package dto
 
 type CreateFactorDetailRequest struct {
-	FactorID   int    `json:"factorId" binding:"required"`
+	Code   string    `json:"code" binding:"required"`
 	FullName   string `json:"fullName" binding:"required"`
 	Mobile     string `json:"mobile" binding:"required"`
 	Province   string `json:"province" binding:"required"`

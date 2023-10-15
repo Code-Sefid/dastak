@@ -17,7 +17,7 @@ type PaymentHandler struct {
 func NewPaymentHandler(cfg *config.Config) *PaymentHandler {
 	service := services.NewPaymentService(cfg)
 	return &PaymentHandler{
-		service: (*services.PaymentService)(service),
+		service: service,
 	}
 }
 

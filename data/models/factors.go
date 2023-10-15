@@ -57,5 +57,5 @@ type FactorDetail struct {
 	City         string `gorm:"type:VARCHAR(255)"`
 	Address      string
 	PostalCode   string `gorm:"type:VARCHAR(255)"`
-	TrackingCode string `gorm:"type:VARCHAR(255)"`
+	TrackingCode *string `gorm:"type:VARCHAR(255)"`
 }

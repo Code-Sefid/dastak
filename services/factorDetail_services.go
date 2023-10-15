@@ -29,7 +29,49 @@ func NewFactorDetailService(cfg *config.Config) *FactorDetailService {
 
 // Create
 func (s *FactorDetailService) Create(ctx context.Context, req *dto.CreateFactorDetailRequest) (*dto.FactorDetailResponse, error) {
-	return s.base.Create(ctx, req)
+	tx := s.base.Database.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil || tx.Error != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+
+	var factor models.Factors
+	err := tx.Where("code = ?", req.Code).Preload("User").First(&factor).Error
+	if err != nil {
+		return nil, err
+	}
+
+	factorDetail := models.FactorDetail{
+		FactorID: factor.ID,
+		FullName: req.FullName,
+		Mobile: req.Mobile,
+		Province: req.Province,
+		City: req.City,
+		Address: req.Address,
+		PostalCode: req.PostalCode,
+		TrackingCode: nil,
+	}
+
+	err = tx.Create(&factorDetail).Error
+	if err != nil {
+		return nil ,err
+	}
+	tx.Commit()
+	
+
+	return &dto.FactorDetailResponse{
+		ID: factorDetail.ID,
+		FullName: factorDetail.FullName,
+		Mobile: factor.User.Mobile,
+		City: factorDetail.City,
+		Province: factorDetail.Province,
+		Address: factorDetail.Address,
+		PostalCode: factorDetail.PostalCode,
+	},nil
 }
 
 // Update

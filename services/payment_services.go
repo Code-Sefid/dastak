@@ -21,18 +21,18 @@ import (
 
 
 type PaymentService struct {
-	cfg          *config.Config
-	database     *gorm.DB
+	logger   logging.Logger
+	cfg      *config.Config
+	database *gorm.DB
 }
 
-func NewPaymentService(cfg *config.Config) *AuthService {
+func NewPaymentService(cfg *config.Config) *PaymentService {
 	database := db.GetDb()
 	logger := logging.NewLogger(cfg)
-	return &AuthService{
+	return &PaymentService{
 		cfg:          cfg,
 		database:     database,
 		logger:       logger,
-		tokenService: NewTokenService(cfg),
 	}
 }
 

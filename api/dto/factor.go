@@ -23,6 +23,7 @@ type FactorProductResponse struct {
 	Status     int                      `json:"status"`
 	Account    *AccountResponse         `json:"account"`
 	Products   []*ProductFactorResponse `json:"products"`
+	Factor     *FactorDetailResponse     `json:"factor"` 
 }
 
 type AccountResponse struct {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
 	"github.com/soheilkhaledabdi/dastak/api/helper"
@@ -200,6 +201,26 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 		return nil, err
 	}
 
+	var FactorDetailResponse *dto.FactorDetailResponse
+
+	var factorDetail *models.FactorDetail
+	err = tx.Where("factor_id = ?", factor.ID).First(&factorDetail).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	if factorDetail != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		FactorDetailResponse = &dto.FactorDetailResponse{
+			ID:         factorDetail.ID,
+			FullName:   factorDetail.FullName,
+			Mobile:     factorDetail.Mobile,
+			Address:    factorDetail.Address,
+			Province:   factorDetail.Province,
+			City:       factorDetail.City,
+			PostalCode: factorDetail.PostalCode,
+		}
+	}
+
 	var products []*dto.ProductFactorResponse
 
 	for _, item := range factorProducts {
@@ -220,10 +241,12 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 		Account: &dto.AccountResponse{
 			Name: factor.User.FullName,
 		},
+		Factor: FactorDetailResponse,
 	}
 
 	return factorResponse, nil
 }
+
 
 func (f *FactorService) DeleteItem(ctx context.Context, factorID int, request dto.FactorItem) error {
 	tx := f.database.WithContext(ctx).Begin()

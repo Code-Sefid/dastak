@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,6 +9,7 @@ import (
 	"github.com/soheilkhaledabdi/dastak/api/helper"
 	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/services"
+	"gorm.io/gorm"
 )
 
 type PaymentHandler struct {
@@ -31,10 +33,14 @@ func (h *PaymentHandler) Create(c *gin.Context) {
 	}
 	res, _, err := h.service.PaymentURL(c, req)
 
-	if err != nil {
+	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
+	}else if errors.Is(err,gorm.ErrRecordNotFound){
+		c.AbortWithStatusJSON(http.StatusNotFound,
+			helper.GenerateBaseResponseWithError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
+		return	
 	}
 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))

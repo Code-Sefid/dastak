@@ -4,8 +4,8 @@ type CreateFactorDetailRequest struct {
 	Code   	   string    `json:"code" binding:"required"`
 	FullName   string `json:"fullName" binding:"required"`
 	Mobile     string `json:"mobile" binding:"required,min=11,max=11,mobile"`
-	Province   string `json:"province" binding:"required"`
-	City       string `json:"city" binding:"required"`
+	Province   string `json:"province" binding:"required,max=100"`
+	City       string `json:"city" binding:"required,max=100"`
 	Address    string `json:"address" binding:"required"`
 	PostalCode *string `json:"postalCode" binding:"required"`
 }

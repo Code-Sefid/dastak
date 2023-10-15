@@ -1,13 +1,13 @@
 package dto
 
 type CreateFactorDetailRequest struct {
-	Code   string    `json:"code" binding:"required"`
+	Code   	   string    `json:"code" binding:"required"`
 	FullName   string `json:"fullName" binding:"required"`
 	Mobile     string `json:"mobile" binding:"required"`
 	Province   string `json:"province" binding:"required"`
 	City       string `json:"city" binding:"required"`
 	Address    string `json:"address" binding:"required"`
-	PostalCode string `json:"postalCode" binding:"required"`
+	PostalCode *string `json:"postalCode" binding:"required"`
 }
 
 type UpdateFactorDetailRequest struct {

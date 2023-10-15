@@ -52,7 +52,7 @@ func (s *FactorDetailService) Create(ctx context.Context, req *dto.CreateFactorD
 		Province: req.Province,
 		City: req.City,
 		Address: req.Address,
-		PostalCode: req.PostalCode,
+		PostalCode: *req.PostalCode,
 		TrackingCode: nil,
 	}
 

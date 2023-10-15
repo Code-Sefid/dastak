@@ -28,51 +28,58 @@ func NewFactorDetailService(cfg *config.Config) *FactorDetailService {
 }
 
 // Create
-func (s *FactorDetailService) Create(ctx context.Context, req *dto.CreateFactorDetailRequest) (*dto.FactorDetailResponse, error) {
-	tx := s.base.Database.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil || tx.Error != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+func (s *FactorDetailService) CreateOrUpdate(ctx context.Context, req *dto.CreateFactorDetailRequest) (*dto.FactorDetailResponse, error) {
+    factor := models.Factors{}
+    if err := s.base.Database.WithContext(ctx).Where("code = ?", req.Code).Preload("User").First(&factor).Error; err != nil {
+        return nil, err
+    }
 
+    factorDetail := models.FactorDetail{}
+    err := s.base.Database.WithContext(ctx).Where("factor_id = ?", factor.ID).First(&factorDetail).Error
+    if err != nil {
+        if errors.Is(err,gorm.ErrRecordNotFound) {
+            factorDetail = models.FactorDetail{
+                FactorID:    factor.ID,
+                FullName:    req.FullName,
+                Mobile:      req.Mobile,
+                Province:    req.Province,
+                City:        req.City,
+                Address:     req.Address,
+                PostalCode:  *req.PostalCode,
+                TrackingCode: nil,
+            }
+            err = s.base.Database.WithContext(ctx).Create(&factorDetail).Error
+            if err != nil {
+                return nil, err
+            }
+        } else {
+            return nil, err
+        }
+    } else {
+        factorDetail.FullName = req.FullName
+        factorDetail.Mobile = req.Mobile
+        factorDetail.Province = req.Province
+        factorDetail.City = req.City
+        factorDetail.Address = req.Address
+        factorDetail.PostalCode = *req.PostalCode
 
-	var factor models.Factors
-	err := tx.Where("code = ?", req.Code).Preload("User").First(&factor).Error
-	if err != nil {
-		return nil, err
-	}
+        err = s.base.Database.WithContext(ctx).Save(&factorDetail).Error
+        if err != nil {
+            return nil, err
+        }
+    }
 
-	factorDetail := models.FactorDetail{
-		FactorID: factor.ID,
-		FullName: req.FullName,
-		Mobile: req.Mobile,
-		Province: req.Province,
-		City: req.City,
-		Address: req.Address,
-		PostalCode: *req.PostalCode,
-		TrackingCode: nil,
-	}
-
-	err = tx.Create(&factorDetail).Error
-	if err != nil {
-		return nil ,err
-	}
-	tx.Commit()
-	
-
-	return &dto.FactorDetailResponse{
-		ID: factorDetail.ID,
-		FullName: factorDetail.FullName,
-		Mobile: factor.User.Mobile,
-		City: factorDetail.City,
-		Province: factorDetail.Province,
-		Address: factorDetail.Address,
-		PostalCode: factorDetail.PostalCode,
-	},nil
+    return &dto.FactorDetailResponse{
+        ID:         factorDetail.ID,
+        FullName:   factorDetail.FullName,
+        Mobile:     factor.User.Mobile,
+        City:       factorDetail.City,
+        Province:   factorDetail.Province,
+        Address:    factorDetail.Address,
+        PostalCode: factorDetail.PostalCode,
+    }, nil
 }
+
 
 // Update
 func (s *FactorDetailService) Update(ctx context.Context, id int,userID int, req *dto.UpdateFactorDetailRequest) (*dto.FactorDetailResponse, error) {

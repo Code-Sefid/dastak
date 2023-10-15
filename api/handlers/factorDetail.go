@@ -21,7 +21,7 @@ func NewFactorDetailHandler(cfg *config.Config) *FactorDetailHandler {
 }
 
 func (h *FactorDetailHandler) Create(c *gin.Context) {
-	Create(c, h.service.Create)
+	Create(c, h.service.CreateOrUpdate)
 }
 
 func (h *FactorDetailHandler) Update(c *gin.Context) {

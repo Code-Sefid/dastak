@@ -52,6 +52,25 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		return nil, &dto.Alert{Message: "فاکتور شما وجود ندارن یا به مشکل خورده"},err
 	}
 
+	var FactorProducts []*models.FactorProducts
+
+	err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Find(&FactorProducts).Error
+
+	if err != nil {
+		return nil , nil,err
+	}
+
+	var sum int
+	for _,item := range FactorProducts{
+		sum += item.Count * item.Product.Price
+	}
+
+	if factor.OffPercent != 0 {
+		sum = sum / 100 * (100 - int(factor.OffPercent))
+	}
+	onePercent := sum / 100   
+	sum += (onePercent * 4)
+
 
 	merchant := p.cfg.Zibal.Token
 	data := fmt.Sprintf(`{
@@ -59,7 +78,7 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		"amount": "%s",
 		"callbackUrl": "%s",
 		"orderId": "%s" 
-	}`, merchant, req.FinalPrice,p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
+	}`, merchant, string(sum),p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
 	
 
 

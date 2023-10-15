@@ -3,7 +3,6 @@ package dto
 
 type Payment struct {
 	Code         string     `json:"code" binding:"required"`
-	FinalPrice      string    `json:"finalPrice" binding:"required"`
 }
 
 type PaymentResponse struct {

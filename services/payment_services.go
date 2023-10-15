@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"strconv"
 
 	"fmt"
@@ -20,9 +21,7 @@ import (
 
 
 type PaymentService struct {
-	logger       logging.Logger
 	cfg          *config.Config
-	tokenService *TokenService
 	database     *gorm.DB
 }
 
@@ -54,13 +53,13 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	}
 
 
-	merchant := "zibal"
+	merchant := p.cfg.Zibal.Token
 	data := fmt.Sprintf(`{
 		"merchant": "%s",
 		"amount": "%s",
-		"callbackUrl": "https://localhost:3000/callback",
+		"callbackUrl": "%s",
 		"orderId": "%s" 
-	}`, merchant, req.FinalPrice, factor.Code)
+	}`, merchant, req.FinalPrice,p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
 	
 
 
@@ -88,7 +87,7 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 }
 
 
-func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (bool,*dto.Alert, error) {
+func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (bool, *dto.Alert, error) {
 	tx := p.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil || tx.Error != nil {
@@ -98,33 +97,45 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 	}()
 
-
-
 	var factor models.Factors
 	err := tx.Model(&models.Factors{}).Where("code = ?", req.Code).First(&factor).Error
 	if err != nil {
-		return false, &dto.Alert{Message: "فاکتور شما وجود ندارن یا به مشکل خورده"},err
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, &dto.Alert{Message: "فاکتور شما وجود ندارد یا به مشکل خورده"}, err
+		}
+		return false, &dto.Alert{Message: "خطا در پایگاه داده"}, err
 	}
 
-	merchant := "fe7517b43c824da2a5ed7000845595b2"
+	merchant := p.cfg.Zibal.Token
 	data := `{
-        "merchant" : "` + merchant + `",
-        "trackId" : ` + req.TrackID + `
+		"merchant" : "` + merchant + `",
+		"trackId" : ` + req.TrackID + `
 	}`
 
-	result,err := p.postToZibal("v1/verify", data)
-
-	var verifyResponse dto.VerifyResponse
-	if err := json.Unmarshal([]byte(result), &verifyResponse); err != nil {
+	result, err := p.postToZibal("v1/verify", data)
+	if err != nil {
+		// Handle the error from the postToZibal function.
 		tx.Rollback()
 		return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
 	}
 
-	if !p.verifyResult(verifyResponse.Result) {
-		return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+	var verifyResponse dto.VerifyResponse
+	err = json.Unmarshal([]byte(result), &verifyResponse)
+	if err != nil {
+		// Handle the JSON unmarshaling error.
+		tx.Rollback()
+		return false, &dto.Alert{Message: "خطایی در پردازش پاسخ از درگاه پرداخت رخ داده است"}, err
 	}
+
+	if !p.verifyResult(verifyResponse.Result) {
+		tx.Rollback()
+		return false, &dto.Alert{Message: "پاسخ از درگاه پرداخت نامعتبر است"}, err
+	}
+
 	return true, nil, nil
 }
+
 
 func (p *PaymentService) postToZibal(path string, parameters string) (string, error) {
 	var jsonStr = []byte(parameters)

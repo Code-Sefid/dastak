@@ -14,7 +14,7 @@ logger:
 postgres :
   host : localhost
   port : 5432
-  user : soheil
+  user :  soheil
   password : sH1382@@
   dbName : dastak
   sslMode : disable
@@ -48,3 +48,8 @@ jwt:
   refreshSecret: "mySecretKey"
   accessTokenExpireDuration: 1440
   refreshTokenExpireDuration: 60
+
+
+Zibal : 
+  token : 64fed373c3e074001af9fdea
+  callBackUrl : https://localhost:3005/callback

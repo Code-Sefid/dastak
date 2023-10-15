@@ -15,6 +15,7 @@ type Config struct {
 	Password PasswordConfig
 	Logger   LoggerConfig
 	JWT      JWTConfig
+	Zibal    Zibal
 }
 
 type RedisConfig struct {
@@ -72,6 +73,12 @@ type JWTConfig struct {
 	Secret                     string
 	RefreshSecret              string
 }
+
+type Zibal struct {
+	Token string
+	CallbackUrl string
+}
+
 
 func GetConfig() *Config {
 	cfgPath := getConfigPath(os.Getenv("APP_ENV"))

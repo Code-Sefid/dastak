@@ -14,7 +14,7 @@ logger:
 postgres :
   host : localhost
   port : 5432
-  user :  soheil
+  user :  postgres
   password : sH1382@@
   dbName : dastak
   sslMode : disable

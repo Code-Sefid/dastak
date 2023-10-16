@@ -209,13 +209,7 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 		return nil, err
 	}
 
-	if factorDetail != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-
-		err := tx.Model(&models.Factors{}).Where("id = ? AND status = ?", factor.ID,models.CREATED).Update("status" , models.PENDING).Error
-		if err != nil {
-			return nil, err
-		}
-
+	if factorDetail != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		FactorDetailResponse = &dto.FactorDetailResponse{
 			ID:         factorDetail.ID,
 			FullName:   factorDetail.FullName,

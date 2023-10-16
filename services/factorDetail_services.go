@@ -48,10 +48,17 @@ func (s *FactorDetailService) CreateOrUpdate(ctx context.Context, req *dto.Creat
                 PostalCode:  *req.PostalCode,
                 TrackingCode: nil,
             }
-            err = s.base.Database.WithContext(ctx).Create(&factorDetail).Error
+
+			err = s.base.Database.WithContext(ctx).Create(&factorDetail).Error
             if err != nil {
                 return nil, err
             }
+			
+			factor.Status = models.PENDING
+			err = s.base.Database.WithContext(ctx).Save(&factor).Error
+			if err != nil {
+				return nil, err
+			}
         } else {
             return nil, err
         }

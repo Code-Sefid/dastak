@@ -162,7 +162,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 	}
 
 
-	if  (verifyResponse.Result == 201 || verifyResponse.Result == 100) && factor.Status == models.PENDING{
+	if  (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING || factor.Status == models.CREATED) {
 		var FactorProducts []*models.FactorProducts
 
 		err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error

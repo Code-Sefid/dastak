@@ -185,7 +185,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			FactorID: factor.ID,
 			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
 			UserID: factor.UserID,
-			Amount: float64(verifyResponse.Amount),
+			Amount: float64(sum),
 			TransactionType: models.SALES,
 		}
 	

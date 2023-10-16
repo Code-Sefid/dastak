@@ -3,12 +3,18 @@ package models
 
 
 type TransactionType string
-
+type CheckOutType string
 
 const (
-	SALES TransactionType = "sales"
+	SALES    TransactionType = "sales"
 	WITHDRAW TransactionType = "withdraw"
 	Referral TransactionType = "referral"
+
+
+	PENDINGCHECKOUT CheckOutType = "pending"
+	REJECT CheckOutType = "reject"
+	DONE CheckOutType = "done"
+	
 )
 
 type Wallet struct {
@@ -41,4 +47,10 @@ type Transactions struct {
 	TransactionType TransactionType `gorm:"type:VARCHAR(255)"`
 
 	Amount      float64
+}
+
+type CheckOutRequest struct {
+	UserID int 
+	Amount int
+	Status CheckOutType
 }

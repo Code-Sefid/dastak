@@ -37,6 +37,7 @@ func createTables(database *gorm.DB) {
 		&models.Wallet{},
 		&models.BankAccounts{},
 		&models.Transactions{},
+		&models.CheckOutRequest{},
 	}
 
 	tables := []interface{}{}

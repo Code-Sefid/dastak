@@ -163,6 +163,24 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 
 
 	if  (verifyResponse.Result == 201 || verifyResponse.Result == 100) && factor.Status == models.PENDING{
+		var FactorProducts []*models.FactorProducts
+
+		err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
+	
+		if err != nil {
+			return false,nil,err
+		}
+	
+		var sum int
+
+		for _,item := range FactorProducts{
+			sum += item.Count * item.Product.Price
+		}
+	
+		if factor.OffPercent != 0 {
+			sum = sum / 100 * (100 - int(factor.OffPercent))
+		}
+
 		transaction := models.Transactions{
 			FactorID: factor.ID,
 			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
@@ -185,7 +203,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		} else if errors.Is(err, gorm.ErrRecordNotFound) {
 			wallet := models.Wallet{
 				UserId: factor.UserID,
-				Amount: verifyResponse.Amount,
+				Amount: sum,
 			}
 			err := tx.Create(&wallet).Error
 			if err != nil {
@@ -193,7 +211,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 				return false, &dto.Alert{Message: "مشکل در ساخت کیف پول است"}, err
 			}
 		} else {
-			newAmount := (wallet.Amount + verifyResponse.Amount) / 10
+			newAmount := (wallet.Amount + sum)
 			err = tx.Model(&models.Wallet{}).Where("user_id = ?", factor.UserID).Updates(map[string]interface{}{"amount": newAmount}).Error
 			if err != nil {
 				tx.Rollback()

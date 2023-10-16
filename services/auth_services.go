@@ -98,79 +98,72 @@ func (a *AuthService) Login(request *dto.Login) (*dto.TokenDetail, *dto.Alert, b
 }
 
 func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto.TokenDetail, *dto.Alert, bool, error) {
-	tx := a.database.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil || tx.Error != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
+    tx := a.database.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil || tx.Error != nil {
+            tx.Rollback()
+        } else {
+            tx.Commit()
+        }
+    }()
+
+    exist, err := a.ExistsByMobile(request.Mobile)
+    if err != nil {
+        return nil, nil, false, err
+    }
+    if exist {
+        return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+    }
+
+
+    password := common.GenerateOtp()
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
+        return nil, nil, false, err
+    }
+
+    var referral string
+    if request.Referral != nil {
+		existMobile, err := a.ExistsByMobile(*request.Referral)
+		if err != nil {
+			return nil, nil, false, err
 		}
-	}()
+		if !existMobile {
+			return nil, &dto.Alert{Message: "شماره موبایل رفرال شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		}
+	
+		if request.Referral != nil && *request.Referral == request.Mobile {
+			return nil, &dto.Alert{Message: "شماره تلفن شما با رفرال یکسان است"}, false, nil
+		}
+	
+        referral = *request.Referral
+    }
 
-	exist, err := a.ExistsByMobile(request.Mobile)
-	if err != nil {
-		return nil, nil, false, err
-	}
-	if exist {
-		return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
-	}
+    user := models.Users{
+        FullName:       request.FullName,
+        Mobile:         request.Mobile,
+        Type:           models.UsersType(a.IntToAccountType(request.AccountType)),
+        SaleCount:      request.SaleCount,
+        Password:       string(hashedPassword),
+        ReferralMobile: referral,
+    }
 
+    err = tx.Create(&user).Error
+    if err != nil {
+        a.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
+        return nil, nil, false, err
+    }
 
-	existMobile, err := a.ExistsByMobile(*request.Referral)
-	if err != nil {
-		return nil, nil, false, err
-	}
-	if !existMobile {
-		return nil, &dto.Alert{Message: "شماره موبایل رفرال شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
-	}
+    tokenData := tokenDto{UserId: int(user.ID), Mobile: user.Mobile}
+    token, err := a.tokenService.GenerateToken(&tokenData)
+    if err != nil {
+        return nil, nil, false, err
+    }
 
-	if *request.Referral == request.Mobile {
-		return nil, &dto.Alert{Message: "شماره تلفن شما با رفرال یکسان است"}, false, nil
-	}
-
-
-	password := common.GenerateOtp()
-
-	err = a.SendOTP(request.Mobile, password)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
-		return nil, nil, false, err
-	}
-
-	var referral string
-	if request.Referral != nil {
-		referral = *request.Referral
-	}
-
-	user := models.Users{
-		FullName:  request.FullName,
-		Mobile:    request.Mobile,
-		Type:      models.UsersType(a.IntToAccountType(request.AccountType)),
-		SaleCount: request.SaleCount,
-		Password:  string(hashedPassword),
-		ReferralMobile: referral,
-	}
-
-	err = tx.Create(&user).Error
-	if err != nil {
-		a.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
-		return nil, nil, false, err
-	}
-
-	tokenData := tokenDto{UserId: int(user.ID), Mobile: user.Mobile}
-
-	token, err := a.tokenService.GenerateToken(&tokenData)
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	return token, &dto.Alert{Message: "حساب شما با موفقیت ثبت شد"}, true, nil
+    return token, &dto.Alert{Message: "حساب شما با موفقیت ثبت شد"}, true, nil
 }
+
 
 func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*dto.Alert, bool, error) {
 	tx := a.database.WithContext(ctx).Begin()
@@ -236,23 +229,21 @@ func (a *AuthService) Logout(token string) error {
 // Helper Function
 
 func (s *AuthService) ExistsByMobile(mobile string) (bool, error) {
-	var user models.Users
-	err := s.database.Model(&models.Users{}).
-		Where("mobile = ?", mobile).
-		First(&user).
-		Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		s.logger.Error(logging.Postgres, logging.Select, err.Error(), nil)
-		return false, err
-	}
+    var user models.Users
+    err := s.database.Model(&models.Users{}).
+        Where("mobile = ?", mobile).
+        First(&user).
+        Error
 
-	if user.DeletedAt.Valid {
-		return false, nil
-	}
-	return true, nil
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return false, nil
+        }
+        s.logger.Error(logging.Postgres, logging.Select, err.Error(), nil)
+        return false, err
+    }
+
+    return user.DeletedAt.Valid, nil
 }
 
 func (s *AuthService) SendOTP(mobile string, code string) error {

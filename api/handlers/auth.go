@@ -68,7 +68,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, alert.Message))
+	if alert == nil{
+		c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, ""))
+	}else {
+		c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, alert.Message))
+	}
 }
 
 func (h *AuthHandler) ResendPassword(c *gin.Context) {

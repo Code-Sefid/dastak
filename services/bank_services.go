@@ -115,7 +115,7 @@ func (s *BankService) GetByUserId(ctx context.Context, userId int) (*dto.BankRes
 
         wallet = models.Wallet{
             UserId:      userId,
-            Amount: 0,
+            Amount: wallet.Amount,
         }
 
         if err := tx.Create(&wallet).Error; err != nil {

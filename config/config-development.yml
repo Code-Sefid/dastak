@@ -51,5 +51,5 @@ jwt:
 
 
 Zibal : 
-  token : 64fed373c3e074001af9fdea
+  token : zibal
   callBackUrl : https://localhost:3005/callback

@@ -230,21 +230,23 @@ func (a *AuthService) Logout(token string) error {
 // Helper Function
 
 func (s *AuthService) ExistsByMobile(mobile string) (bool, error) {
-    var user models.Users
-    err := s.database.Model(&models.Users{}).
-        Where("mobile = ?", mobile).
-        First(&user).
-        Error
+	var user models.Users
+	err := s.database.Model(&models.Users{}).
+		Where("mobile = ?", mobile).
+		First(&user).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		s.logger.Error(logging.Postgres, logging.Select, err.Error(), nil)
+		return false, err
+	}
 
-    if err != nil {
-        if errors.Is(err, gorm.ErrRecordNotFound) {
-            return false, nil
-        }
-        s.logger.Error(logging.Postgres, logging.Select, err.Error(), nil)
-        return false, err
-    }
-
-    return user.DeletedAt.Valid, nil
+	if user.DeletedAt.Valid {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (s *AuthService) SendOTP(mobile string, code string) error {

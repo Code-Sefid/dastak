@@ -111,8 +111,9 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
     if err != nil {
         return nil, nil, false, err
     }
-    if exist {
-        return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+
+    if !exist {
+        return nil, &dto.Alert{Message: "شماره موبایل شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
     }
 
 

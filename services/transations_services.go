@@ -49,7 +49,7 @@ func (s *TransactionsService) GetByFilter(ctx context.Context, userId int) ([]*d
 		return nil, err
 	}
 	
-	responses := make([]*dto.TransactionsResponse,len(transaction))
+	responses := make([]*dto.TransactionsResponse,0)
 	for _,item := range transaction{
 		var title string
 

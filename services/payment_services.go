@@ -117,7 +117,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 	}()
 
 	var factor models.Factors
-	err := tx.Model(&models.Factors{}).Where("code = ?", req.Code).First(&factor).Error
+	err := tx.Model(&models.Factors{}).Where("code = ?", req.Code).Preload("User").First(&factor).Error
 	if err != nil {
 		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -162,7 +162,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 	}
 
 
-	if  verifyResponse.Result == 201 || verifyResponse.Result == 100{
+	if  (verifyResponse.Result == 201 || verifyResponse.Result == 100) && factor.Status == models.PENDING{
 		transaction := models.Transactions{
 			FactorID: factor.ID,
 			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
@@ -207,10 +207,14 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			tx.Rollback()
 			return false, &dto.Alert{Message: "مشکلی در تغییر وضعیت فاکتور پیش امده است"}, err
 		}
+
+		p.SendPayment(factorDetail.Mobile,factorDetail.FullName,factor.User.FullName,factor.Code)
 	}
 	return true, nil, nil
 }
 
+
+// Helper 
 
 func (p *PaymentService) postToZibal(path string, parameters string) (string, error) {
 	var jsonStr = []byte(parameters)
@@ -244,7 +248,6 @@ func (p *PaymentService) postToZibal(path string, parameters string) (string, er
 	return string(body), nil
 }
 
-
 func (p *PaymentService) verifyResult(result int) bool{
 	switch result {
 		case 100: 
@@ -256,3 +259,22 @@ func (p *PaymentService) verifyResult(result int) bool{
 
 	}
 }
+
+func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor string) error {
+    url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167441@%s;%s;%s;&to=%s", shopName, fullName, codeFactor, mobile)
+
+	print(url)
+    response, err := http.Get(url)
+    if err != nil {
+        return err
+    }
+    defer response.Body.Close()
+
+    if response.StatusCode != http.StatusOK {
+        return fmt.Errorf("HTTP: %d", response.StatusCode)
+    }
+
+    return nil
+}
+
+// End Helper

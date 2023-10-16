@@ -10,7 +10,7 @@ const (
 	WITHDRAW TransactionType = "withdraw"
 	Referral TransactionType = "referral"
 	CORRECTED TransactionType = "corrected"
-	
+	DASTAK TransactionType = "dastak"
 
 	PENDINGCHECKOUT CheckOutType = "pending"
 	REJECT CheckOutType = "reject"

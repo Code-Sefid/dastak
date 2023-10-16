@@ -13,5 +13,6 @@ type Users struct {
 	Type      UsersType
 	Mobile    string `gorm:"type:VARCHAR(255)"`
 	Password  string `gorm:"type:VARCHAR(255)"`
+	ReferralMobile   string `gorm:"type:VARCHAR(255)"`
 	SaleCount uint
 }

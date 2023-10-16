@@ -181,6 +181,60 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			sum = sum / 100 * (100 - int(factor.OffPercent))
 		}
 
+		var onePercent float32
+		// var referral int
+		onePercent = float32(sum) / 100
+
+		if factor.User.ReferralMobile != "" {
+			onePercent = (onePercent * 5)
+			transactionDastak := models.Transactions{
+				FactorID: factor.ID,
+				Description: fmt.Sprintf("درصد رفرال دستک از طرف %s" , factorDetail.FullName),
+				UserID: factor.UserID,
+				Amount: float64(onePercent),
+				TransactionType: models.DASTAK,
+			}
+		
+			err = tx.Create(&transactionDastak).Error
+			if err != nil {
+				tx.Rollback()
+				return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+			}
+		}else{
+			onePercent = (onePercent * 4)
+			// referral = int(onePercent)
+
+			transactionDastak := models.Transactions{
+				FactorID: factor.ID,
+				Description: fmt.Sprintf("درصد رفرال دستک از طرف %s" , factorDetail.FullName),
+				UserID: factor.UserID,
+				Amount: float64(onePercent),
+				TransactionType: models.DASTAK,
+			}
+		
+			err = tx.Create(&transactionDastak).Error
+			if err != nil {
+				tx.Rollback()
+				return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+			}
+
+			// transactionReffrel := models.Transactions{
+			// 	FactorID: factor.ID,
+			// 	Description: fmt.Sprintf("درصد رفرال دستک از طرف %s" , factorDetail.FullName),
+			// 	UserID: factor.UserID,
+			// 	Amount: float64(onePercent),
+			// 	TransactionType: models.DASTAK,
+			// }
+		
+			// err = tx.Create(&transactionReffrel).Error
+			// if err != nil {
+			// 	tx.Rollback()
+			// 	return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+			// }
+
+		}
+
+
 		transaction := models.Transactions{
 			FactorID: factor.ID,
 			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
@@ -194,7 +248,8 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			tx.Rollback()
 			return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
 		}
-	
+
+
 		var wallet models.Wallet
 		err = tx.Model(&models.Wallet{}).Where("user_id = ?", factor.UserID).First(&wallet).Error
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -217,7 +272,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 				tx.Rollback()
 				return false, &dto.Alert{Message: "مشکلی در افزایش موجودی کیف پول داریم"}, err
 			}
-		}		
+		}
 
 		factor.Status = models.PAID
 		err  = tx.Save(&factor).Error

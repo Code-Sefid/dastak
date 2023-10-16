@@ -52,4 +52,4 @@ jwt:
 
 Zibal : 
   token : zibal
-  callBackUrl : https://localhost:3005/callback
+  callBackUrl : https://localhost:3005

@@ -14,7 +14,7 @@ type PaymentResponse struct {
 
 
 type Verify struct {
-	Success int    `json:"success" binding:"required"`
+	Success *int    `json:"success" binding:"required"`
 	Status  int    `json:"status" binding:"required"`
 	TrackID string    `json:"trackId" binding:"required"`
 	Code string `json:"code" binding:"required"`

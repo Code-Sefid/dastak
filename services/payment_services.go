@@ -54,7 +54,7 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 
 	var FactorProducts []*models.FactorProducts
 
-	err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Find(&FactorProducts).Error
+	err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
 
 	if err != nil {
 		return nil , nil,err
@@ -68,19 +68,19 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	if factor.OffPercent != 0 {
 		sum = sum / 100 * (100 - int(factor.OffPercent))
 	}
-	onePercent := sum / 100   
-	sum += (onePercent * 4)
+	onePercent := float32(sum) / 100   
+	onePercent = (onePercent * 4)
+	sum += int(onePercent)
 
 
 	merchant := p.cfg.Zibal.Token
 	data := fmt.Sprintf(`{
 		"merchant": "%s",
-		"amount": "%s",
+		"amount": %d,
 		"callbackUrl": "%s",
-		"orderId": "%s" 
-	}`, merchant, string(sum),p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
+		"orderId": "%s"
+	}`, merchant,sum,p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
 	
-
 
 
 	result, err := p.postToZibal("v1/request", data)
@@ -100,7 +100,7 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	}
 	trackIDStr := strconv.Itoa(paymentResponse.TrackID)
 
-	paymentResponse.Url = fmt.Sprintf("https://gateway.zibal.ir/start/%s",trackIDStr )
+	paymentResponse.Url = fmt.Sprintf("https://gateway.zibal.ir/start/%s",trackIDStr)
 
 	return &paymentResponse, nil, nil
 }
@@ -126,6 +126,17 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		return false, &dto.Alert{Message: "خطا در پایگاه داده"}, err
 	}
 
+
+	var factorDetail models.FactorDetail
+	err = tx.Model(&models.FactorDetail{}).Where("factor_id = ?", factor.ID).First(&factorDetail).Error
+	if err != nil {
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, &dto.Alert{Message: "فاکتور شما وجود ندارد یا به مشکل خورده"}, err
+		}
+		return false, &dto.Alert{Message: "خطا در پایگاه داده"}, err
+	}
+
 	merchant := p.cfg.Zibal.Token
 	data := `{
 		"merchant" : "` + merchant + `",
@@ -134,7 +145,6 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 
 	result, err := p.postToZibal("v1/verify", data)
 	if err != nil {
-		// Handle the error from the postToZibal function.
 		tx.Rollback()
 		return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
 	}
@@ -142,7 +152,6 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 	var verifyResponse dto.VerifyResponse
 	err = json.Unmarshal([]byte(result), &verifyResponse)
 	if err != nil {
-		// Handle the JSON unmarshaling error.
 		tx.Rollback()
 		return false, &dto.Alert{Message: "خطایی در پردازش پاسخ از درگاه پرداخت رخ داده است"}, err
 	}
@@ -152,6 +161,38 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		return false, &dto.Alert{Message: "پاسخ از درگاه پرداخت نامعتبر است"}, err
 	}
 
+
+	if p.verifyResult(verifyResponse.Status) {
+		transaction := models.Transactions{
+			FactorID: factor.ID,
+			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
+			UserID: factor.UserID,
+			Amount: float64(verifyResponse.Amount),
+			TransactionType: models.SALES,
+		}
+	
+		err = tx.Create(transaction).Error
+		if err != nil {
+			tx.Rollback()
+			return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+		}
+	
+		var wallet models.Wallet
+		err = tx.Model(&models.Wallet{}).Where("user_id = ?",factor.UserID).First(&wallet).Error
+		if err != nil {
+			tx.Rollback()
+			return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
+		}
+	
+		wallet.Amount += verifyResponse.Amount
+	
+		err = tx.Save(wallet).Error
+		if err != nil {
+			tx.Rollback()
+			return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
+		}
+	
+	}
 	return true, nil, nil
 }
 
@@ -160,6 +201,8 @@ func (p *PaymentService) postToZibal(path string, parameters string) (string, er
 	var jsonStr = []byte(parameters)
 	var url = "https://gateway.zibal.ir/" + path
 
+
+	fmt.Println(bytes.NewBuffer(jsonStr))
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return "", err
@@ -173,6 +216,7 @@ func (p *PaymentService) postToZibal(path string, parameters string) (string, er
 		return "", err
 	}
 	defer resp.Body.Close()
+
 
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)

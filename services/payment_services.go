@@ -191,7 +191,13 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			tx.Rollback()
 			return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
 		}
-	
+
+		factor.Status = models.PAID
+		err  = tx.Save(&factor).Error
+		if err != nil {
+			tx.Rollback()
+			return false, &dto.Alert{Message: "مشکلی در تغییر وضعیت فاکتور پیش امده است"}, err
+		}
 	}
 	return true, nil, nil
 }

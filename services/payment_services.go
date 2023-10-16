@@ -79,7 +79,7 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		"amount": %d,
 		"callbackUrl": "%s",
 		"orderId": "%s"
-	}`, merchant,sum,p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
+	}`, merchant,sum * 10,p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
 	
 
 
@@ -162,7 +162,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 	}
 
 
-	if p.verifyResult(verifyResponse.Status) {
+	if  verifyResponse.Result == 201 || verifyResponse.Result == 100{
 		transaction := models.Transactions{
 			FactorID: factor.ID,
 			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
@@ -171,7 +171,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			TransactionType: models.SALES,
 		}
 	
-		err = tx.Create(transaction).Error
+		err = tx.Create(&transaction).Error
 		if err != nil {
 			tx.Rollback()
 			return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
@@ -179,17 +179,27 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 	
 		var wallet models.Wallet
 		err = tx.Model(&models.Wallet{}).Where("user_id = ?",factor.UserID).First(&wallet).Error
-		if err != nil {
+		if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
 			tx.Rollback()
 			return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
-		}
+		}else if errors.Is(err,gorm.ErrRecordNotFound){
+			wallet := models.Wallet{
+				UserId: factor.UserID,
+				Amount: verifyResponse.Amount,
+			}
+			err := tx.Create(&wallet).Error
+			if err != nil {
+				tx.Rollback()
+				return false, &dto.Alert{Message: "مشکل در ساخت کیف پول است"}, err
+			}
+		}else {
+			wallet.Amount += verifyResponse.Amount
 	
-		wallet.Amount += verifyResponse.Amount
-	
-		err = tx.Save(wallet).Error
-		if err != nil {
-			tx.Rollback()
-			return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
+			err = tx.Save(&wallet).Error
+			if err != nil {
+				tx.Rollback()
+				return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
+			}
 		}
 
 		factor.Status = models.PAID

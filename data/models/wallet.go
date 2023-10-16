@@ -9,7 +9,8 @@ const (
 	SALES    TransactionType = "sales"
 	WITHDRAW TransactionType = "withdraw"
 	Referral TransactionType = "referral"
-
+	CORRECTED TransactionType = "corrected"
+	
 
 	PENDINGCHECKOUT CheckOutType = "pending"
 	REJECT CheckOutType = "reject"

@@ -81,6 +81,8 @@ func (f *TransactionsService) ConvertIntToStatus(status int) models.TransactionT
 		return models.WITHDRAW
 	case 3:
 		return models.Referral
+	case 4:
+		return models.CORRECTED
 	default:
 		return models.SALES
 	}
@@ -94,6 +96,8 @@ func (f *TransactionsService) ConvertStringToStatus(status models.TransactionTyp
 		return 2
 	case models.Referral:
 		return 3
+	case models.CORRECTED:
+		return 4
 	default:
 		return 1
 	}

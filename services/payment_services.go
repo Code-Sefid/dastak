@@ -228,7 +228,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 
 		p.SendPayment(factorDetail.Mobile,factorDetail.FullName,factor.User.FullName,factor.Code)
 	}
-	return true, nil, nil
+	return false, nil, nil
 }
 
 

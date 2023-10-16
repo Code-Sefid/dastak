@@ -112,8 +112,22 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		return nil, nil, false, err
 	}
 	if exist {
-		return nil, &dto.Alert{Message: "شماره موبایل شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+		return nil, &dto.Alert{Message: "شماره موبایل شما وجود ندارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 	}
+
+
+	existMobile, err := a.ExistsByMobile(*request.Referral)
+	if err != nil {
+		return nil, nil, false, err
+	}
+	if !existMobile {
+		return nil, &dto.Alert{Message: "شماره موبایل رفرال شما وجود دارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
+	}
+
+	if *request.Referral == request.Mobile {
+		return nil, &dto.Alert{Message: "شماره تلفن شما با رفرال یکسان است"}, false, nil
+	}
+
 
 	password := common.GenerateOtp()
 
@@ -128,12 +142,18 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		return nil, nil, false, err
 	}
 
+	var referral string
+	if request.Referral != nil {
+		referral = *request.Referral
+	}
+
 	user := models.Users{
 		FullName:  request.FullName,
 		Mobile:    request.Mobile,
 		Type:      models.UsersType(a.IntToAccountType(request.AccountType)),
 		SaleCount: request.SaleCount,
 		Password:  string(hashedPassword),
+		ReferralMobile: referral,
 	}
 
 	err = tx.Create(&user).Error

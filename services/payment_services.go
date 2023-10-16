@@ -226,7 +226,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			return false, &dto.Alert{Message: "مشکلی در تغییر وضعیت فاکتور پیش امده است"}, err
 		}
 
-		p.SendPayment(factorDetail.Mobile,factorDetail.FullName,factor.User.FullName,factor.Code)
+		p.SendPayment(factorDetail.Mobile,factor.User.FullName,factorDetail.FullName,factor.Code)
 		return true, nil, nil
 	}
 	return false, nil, nil

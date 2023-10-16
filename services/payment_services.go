@@ -178,11 +178,11 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 	
 		var wallet models.Wallet
-		err = tx.Model(&models.Wallet{}).Where("user_id = ?",factor.UserID).First(&wallet).Error
-		if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
+		err = tx.Model(&models.Wallet{}).Where("user_id = ?", factor.UserID).First(&wallet).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			tx.Rollback()
-			return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
-		}else if errors.Is(err,gorm.ErrRecordNotFound){
+			return false, &dto.Alert{Message: "مشکلی در افزایش موجودی کیف پول داریم"}, err
+		} else if errors.Is(err, gorm.ErrRecordNotFound) {
 			wallet := models.Wallet{
 				UserId: factor.UserID,
 				Amount: verifyResponse.Amount,
@@ -192,15 +192,14 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 				tx.Rollback()
 				return false, &dto.Alert{Message: "مشکل در ساخت کیف پول است"}, err
 			}
-		}else {
-			wallet.Amount += verifyResponse.Amount
-	
-			err = tx.Save(&wallet).Error
+		} else {
+			newAmount := (wallet.Amount + verifyResponse.Amount) / 10
+			err = tx.Model(&models.Wallet{}).Where("user_id = ?", factor.UserID).Updates(map[string]interface{}{"amount": newAmount}).Error
 			if err != nil {
 				tx.Rollback()
-				return false, &dto.Alert{Message: "مشکلی در افزایش با در کیف پول داریم"}, err
+				return false, &dto.Alert{Message: "مشکلی در افزایش موجودی کیف پول داریم"}, err
 			}
-		}
+		}		
 
 		factor.Status = models.PAID
 		err  = tx.Save(&factor).Error

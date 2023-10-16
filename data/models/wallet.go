@@ -1,5 +1,16 @@
 package models
 
+
+
+type TransactionType string
+
+
+const (
+	SALES TransactionType = "sales"
+	WITHDRAW TransactionType = "withdraw"
+	Referral TransactionType = "referral"
+)
+
 type Wallet struct {
 	BaseModel
 	User   Users `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
@@ -18,9 +29,16 @@ type BankAccounts struct {
 
 type Transactions struct {
 	BaseModel
-	User        Users `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	UserId      int
-	Credit      int
-	Debit       int
+
 	Description string
+
+	FactorID   int
+	Factor     Factors `gorm:"foreignKey:FactorID"`
+
+	User Users `gorm:"foreignKey:UserID"`
+	UserID      int
+
+	TransactionType TransactionType `gorm:"type:VARCHAR(255)"`
+
+	Amount      float64
 }

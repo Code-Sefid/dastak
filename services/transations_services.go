@@ -64,8 +64,38 @@ func (s *TransactionsService) GetByFilter(ctx context.Context, userId int) ([]*d
 			Title: title,
 			Message: item.Description,
 			Amount: item.Amount,
+			Type: s.ConvertStringToStatus(item.TransactionType),
 		})
 	}
 	return responses,nil	
 
 }
+
+
+// Helper functions
+func (f *TransactionsService) ConvertIntToStatus(status int) models.TransactionType {
+	switch status {
+	case 1:
+		return models.SALES
+	case 2:
+		return models.WITHDRAW
+	case 3:
+		return models.Referral
+	default:
+		return models.SALES
+	}
+}
+
+func (f *TransactionsService) ConvertStringToStatus(status models.TransactionType) int {
+	switch status {
+	case models.SALES:
+		return 1
+	case models.WITHDRAW:
+		return 2
+	case models.Referral:
+		return 3
+	default:
+		return 1
+	}
+}
+// End of helper functions

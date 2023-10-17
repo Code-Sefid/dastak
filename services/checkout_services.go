@@ -82,7 +82,7 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		}
 		
 	
-		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"},false,nil
+		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"},true,nil
 	}
 	return &dto.Alert{Message: "مقدار موجودی شما کمتر از حد برداشت است"},false,nil
 }

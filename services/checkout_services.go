@@ -52,7 +52,7 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 
 	if req.Amount <= 50000 {
 		return &dto.Alert{
-			Message: "حداقل میزان برداشت 50,000 هزار تومان باید باشد",
+			Message: "حداقل میزان برداشت باید 50,000 تومان  باشد",
 		}, false,nil
 	}
 	

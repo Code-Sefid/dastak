@@ -29,7 +29,7 @@ func NewCheckOutService(cfg *config.Config) *CheckOutService {
 }
 
 
-func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.CheckOut)(*dto.Alert,error){
+func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.CheckOut)(*dto.Alert,bool,error){
 	tx := c.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -40,21 +40,21 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 	}()
 	var user models.Users
 	if err := tx.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, err
+		return nil, false , err
 	}
 
 	var wallet models.Wallet
 	err := tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).First(&wallet).Error
 	if err != nil {
 		tx.Rollback()
-		return &dto.Alert{Message: "کیف پول شما خالی است"},nil
+		return &dto.Alert{Message: "کیف پول شما خالی است"},false ,nil
 	}
 	
 	if req.Amount <= 50000 && wallet.Amount >= req.Amount{
 		amount := wallet.Amount - req.Amount
 		err = tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).Update("amount" , amount).Error
 		if err != nil {
-			return nil, err
+			return nil, false,err
 		}
 	
 		 checkOut := models.CheckOutRequest{
@@ -65,7 +65,7 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 	
 		err = tx.Model(&models.CheckOutRequest{}).Create(&checkOut).Error
 		if err != nil {
-			return nil, err
+			return nil, false,err
 		}
 	
 		transactions := models.Transactions{
@@ -78,11 +78,11 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		
 		err = tx.Model(&models.Transactions{}).Create(&transactions).Error
 		if err != nil {
-			return nil, err 
+			return nil,false, err 
 		}
 		
 	
-		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"},nil
+		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"},false,nil
 	}
-	return &dto.Alert{Message: "مقدار موجودی شما کمتر از حد برداشت است"},nil
+	return &dto.Alert{Message: "مقدار موجودی شما کمتر از حد برداشت است"},false,nil
 }

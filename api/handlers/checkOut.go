@@ -31,18 +31,18 @@ func (p *CheckOutHandler) CheckOut(c *gin.Context) {
 		return
 	}
 
-	alert , err := p.service.CheckOutMony(c, userID,*req)
+	alert , status , err := p.service.CheckOutMony(c, userID,*req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
 			helper.GenerateBaseResponseWithAnyError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
 	} else if err != nil && alert != nil{
-		c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, alert.Message))
+		c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, status, alert.Message))
 		return
 	} else if err == nil && alert != nil{
-		c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, alert.Message))
+		c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, status, alert.Message))
 		return 
 	}
 
-	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
+	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, status, ""))
 }

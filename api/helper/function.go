@@ -3,6 +3,8 @@ package helper
 import (
 	"math/rand"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,5 +32,32 @@ func GenerateFactorCode() string {
 		result += string(characters[randomIndex])
 	}
 
+	return result
+}
+
+
+func Separate(Number int) string {
+	numberStr := strconv.Itoa(Number)
+
+	parts := strings.Split(numberStr, ".")
+
+	wholePart := parts[0]
+	wholePartWithCommas := addCommas(wholePart)
+
+	if len(parts) > 1 {
+		return wholePartWithCommas + "." + parts[1]
+	}
+	return wholePartWithCommas
+}
+
+func addCommas(input string) string {
+	var result string
+	n := len(input)
+	for i, char := range input {
+		result += string(char)
+		if (n-i-1)%3 == 0 && i != n-1 {
+			result += ","
+		}
+	}
 	return result
 }

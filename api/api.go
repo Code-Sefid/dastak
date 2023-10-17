@@ -50,6 +50,9 @@ func InitServer() {
 
 		transactions := router.Group("transactions")
 		routers.Transactions(transactions, config)
+
+		checkOut := router.Group("check-out")
+		routers.CheckOut(checkOut, config)
 	}
 
 	r.Run(fmt.Sprintf(":%s", config.Server.InternalPort))

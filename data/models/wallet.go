@@ -51,6 +51,7 @@ type Transactions struct {
 }
 
 type CheckOutRequest struct {
+	BaseModel
 	UserID int 
 	Amount int
 	Status CheckOutType

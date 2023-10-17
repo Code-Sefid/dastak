@@ -50,7 +50,7 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		return &dto.Alert{Message: "کیف پول شما خالی است"},false ,nil
 	}
 	
-	if req.Amount <= 50000 && wallet.Amount >= req.Amount{
+	if req.Amount >= 50000 && wallet.Amount >= req.Amount{
 		amount := wallet.Amount - req.Amount
 		err = tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).Update("amount" , amount).Error
 		if err != nil {
@@ -69,7 +69,7 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		}
 	
 		transactions := models.Transactions{
-			UserID: user.ID,
+			UserID: userID,
 			Description: "درخواست برداشت شما به مبلغ " + strconv.Itoa(req.Amount) + " تومان در حال بررسی است",
 			Amount: float64(req.Amount),
 			FactorID: 1,

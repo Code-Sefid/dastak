@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"strconv"
 
 	"fmt"
@@ -345,6 +346,8 @@ func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor stri
     if err != nil {
         return err
     }
+	log.Print(response)
+
     defer response.Body.Close()
 
     if response.StatusCode != http.StatusOK {
@@ -362,6 +365,7 @@ func (s *PaymentService) SendPaymentToUser(fullName, amount, code, mobile,userMo
     if err != nil {
         return err
     }
+	log.Print(response)
     defer response.Body.Close()
 
     if response.StatusCode != http.StatusOK {

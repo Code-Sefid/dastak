@@ -84,7 +84,7 @@ func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput, us
 	}()
 
 	var factors []models.Factors
-	err := tx.Where("user_id = ?", userId).Find(&factors).Error
+	err := tx.Where("user_id = ?", userId).Order("created_at desc").Find(&factors).Error
 	if err != nil {
 		return nil, err
 	}

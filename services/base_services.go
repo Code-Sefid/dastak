@@ -218,6 +218,7 @@ func Paginate[T any, Tr any](pagination *dto.PaginationInputWithFilter, preloads
 		Model(model).
 		Where("user_id", userId).
 		Where(query).
+		Order("created_at desc").
 		Count(&totalRows)
 
 	err := db.

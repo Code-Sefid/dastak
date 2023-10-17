@@ -49,7 +49,7 @@ func (s *ProductsService) CreateByUserId(ctx context.Context, req *dto.CreatePro
 
 	var productResponse models.Products
 
-	if err := tx.Model(&models.Products{}).Preload("Category").First(&productResponse, product.ID).Error; err != nil {
+	if err := tx.Model(&models.Products{}).Preload("Category").Order("created_at desc").First(&productResponse, product.ID).Error; err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to retrieve product after creation: %v", err)
 	}

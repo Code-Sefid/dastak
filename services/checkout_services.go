@@ -49,6 +49,12 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		tx.Rollback()
 		return &dto.Alert{Message: "کیف پول شما خالی است"},false ,nil
 	}
+
+	if req.Amount <= 50000 {
+		return &dto.Alert{
+			Message: "حداقل میزان برداشت 50,000 هزار تومان باید باشد",
+		}, false,nil
+	}
 	
 	if req.Amount >= 50000 && wallet.Amount >= req.Amount{
 		amount := wallet.Amount - req.Amount

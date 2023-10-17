@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
+	"github.com/soheilkhaledabdi/dastak/api/helper"
 	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/data/db"
 	"github.com/soheilkhaledabdi/dastak/data/models"
@@ -282,6 +283,8 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 
 		p.SendPayment(factorDetail.Mobile,factor.User.FullName,factorDetail.FullName,factor.Code)
+		amountStr := helper.Separate(sum)
+		p.SendPaymentToUser(factorDetail.FullName,amountStr,factor.Code,factorDetail.Mobile,factor.User.Mobile)
 		return true, nil, nil
 	}
 	return false, nil, nil
@@ -336,6 +339,23 @@ func (p *PaymentService) verifyResult(result int) bool{
 
 func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor string) error {
     url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167441@%s;%s;%s;&to=%s", shopName, fullName, codeFactor, mobile)
+
+	print(url)
+    response, err := http.Get(url)
+    if err != nil {
+        return err
+    }
+    defer response.Body.Close()
+
+    if response.StatusCode != http.StatusOK {
+        return fmt.Errorf("HTTP: %d", response.StatusCode)
+    }
+
+    return nil
+}
+
+func (s *PaymentService) SendPaymentToUser(fullName, amount, code, mobile,userMobile string) error {
+    url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167730@%s;%s;%s;%s;&to=%s", fullName, amount, code, mobile,userMobile)
 
 	print(url)
     response, err := http.Get(url)

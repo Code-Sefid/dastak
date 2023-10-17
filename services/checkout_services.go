@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
@@ -50,9 +51,20 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		return &dto.Alert{Message: "کیف پول شما خالی است"},false ,nil
 	}
 
+
+	var checkout models.CheckOutRequest
+	err = tx.Where("user_id = ?", userID).Order("created_at desc").First(&checkout).Error
+	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
+		return nil,false ,err
+	}else if !errors.Is(err,gorm.ErrRecordNotFound){
+		if checkout.Status == models.PENDINGCHECKOUT {
+			return &dto.Alert{Message: "شما نمیتوانید بیش از یک درخواست برداشت فعال داشته باشید"},false ,nil
+		}
+	}
+	
 	if req.Amount <= 50000 {
 		return &dto.Alert{
-			Message: "حداقل میزان برداشت باید 50,000 تومان  باشد",
+			Message: "حداقل میزان برداشت باید 50,000 تومان باشد",
 		}, false,nil
 	}
 	

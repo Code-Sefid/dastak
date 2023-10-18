@@ -27,6 +27,7 @@ type FactorDetailResponse struct {
 	Province   string `json:"province" binding:"required"`
 	City       string `json:"city" binding:"required"`
 	PostalCode string `json:"postalCode"`
+	TrackingCode *string `json:"trackingCode"`
 }
 
 type FactorPayment struct {
@@ -34,4 +35,10 @@ type FactorPayment struct {
 	FinalPrice float64 `json:"finalPrice"`
 	// Image         *multipart.FileHeader `form:"image" binding:"required"`
 	// PaymentMethod string                `form:"paymentMethod" binding:"required"`
+}
+
+
+type AddTrackingCode struct {
+	Code       string  `json:"code" binding:"required"`
+	TrackingCode string `json:"trackingCode" binding:"required"`
 }

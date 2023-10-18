@@ -14,4 +14,5 @@ func Customer(r *gin.RouterGroup, cfg *config.Config) {
 	r.GET(":id", h.GetById)
 	r.POST("/get-by-filter", h.GetByFilter)
 	r.POST("/payment", h.FactorPayment)
+	r.POST("/add-tracking-code", h.AddTrackingCode)
 }

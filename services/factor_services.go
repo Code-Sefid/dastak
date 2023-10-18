@@ -218,6 +218,7 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 			Province:   factorDetail.Province,
 			City:       factorDetail.City,
 			PostalCode: factorDetail.PostalCode,
+			TrackingCode: &factorDetail.TrackingCode,
 		}
 	}
 

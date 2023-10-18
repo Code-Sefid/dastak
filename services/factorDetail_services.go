@@ -46,7 +46,7 @@ func (s *FactorDetailService) CreateOrUpdate(ctx context.Context, req *dto.Creat
 				City:         req.City,
 				Address:      req.Address,
 				PostalCode:   *req.PostalCode,
-				TrackingCode: nil,
+				TrackingCode: "",
 			}
 
 			err = s.base.Database.WithContext(ctx).Create(&factorDetail).Error
@@ -139,6 +139,44 @@ func (s *FactorDetailService) FactorPayment(ctx *gin.Context, req *dto.FactorPay
 	}
 
 	err := tx.Create(&FactorPayment).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+func (s *FactorDetailService) AddTrackingCode(ctx context.Context, req *dto.AddTrackingCode) error {
+	tx := s.base.Database.WithContext(ctx).Begin()
+	defer func() {
+		if tx.Error == nil {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}()
+
+	var factor models.Factors
+	if err := tx.Where("code = ?" , req.Code).First(&factor).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		return err
+	}
+
+	factorDetail := models.FactorDetail{}
+	err := tx.Where("factor_id = ?", factor.ID).First(&factorDetail).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		return err
+	}
+
+	factorDetail.TrackingCode = req.TrackingCode
+
+	err = tx.Save(&factorDetail).Error
 	if err != nil {
 		return err
 	}

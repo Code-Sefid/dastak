@@ -33,14 +33,14 @@ func (h *PaymentHandler) Create(c *gin.Context) {
 	}
 	res, _, err := h.service.PaymentURL(c, req)
 
-	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return
-	}else if errors.Is(err,gorm.ErrRecordNotFound){
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound,
 			helper.GenerateBaseResponseWithError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
-		return	
+		return
 	}
 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))

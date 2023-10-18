@@ -57,7 +57,7 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 		err := tx.Create(&models.FactorProducts{
 			ProductID: int(product.ID),
 			FactorID:  int(newFactor.ID),
-			Count: product.Count,
+			Count:     product.Count,
 		}).Error
 		if err != nil {
 			return nil, err
@@ -247,7 +247,6 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 	return factorResponse, nil
 }
 
-
 func (f *FactorService) DeleteItem(ctx context.Context, factorID int, request dto.FactorItem) error {
 	tx := f.database.WithContext(ctx).Begin()
 	defer func() {
@@ -285,7 +284,7 @@ func (f *FactorService) AddItem(ctx context.Context, factorID int, request dto.F
 	factorItem := &models.FactorProducts{
 		ProductID: int(request.ID),
 		FactorID:  factorID,
-		Count:    request.Count,
+		Count:     request.Count,
 	}
 
 	if err := tx.Create(factorItem).Error; err != nil {

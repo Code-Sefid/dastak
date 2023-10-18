@@ -68,9 +68,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if alert == nil{
+	if alert == nil {
 		c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, ""))
-	}else {
+	} else {
 		c.JSON(http.StatusOK, helper.GenerateBaseResponse(token, status, alert.Message))
 	}
 }
@@ -121,7 +121,6 @@ func (h *AuthHandler) CheckMobile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(status, true, alert.Message))
 }
-
 
 func (h *AuthHandler) Logout(c *gin.Context) {
 	auth := c.GetHeader(constants.AuthorizationHeaderKey)

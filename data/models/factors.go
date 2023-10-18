@@ -34,7 +34,7 @@ type FactorProducts struct {
 	Factor   Factors `gorm:"foreignKey:FactorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	FactorID int
 
-	Count int  `gorm:"column:count"`
+	Count int `gorm:"column:count"`
 }
 
 type FactorPayment struct {
@@ -56,6 +56,6 @@ type FactorDetail struct {
 	Province     string `gorm:"type:VARCHAR(255)"`
 	City         string `gorm:"type:VARCHAR(255)"`
 	Address      string
-	PostalCode   string `gorm:"type:VARCHAR(255)"`
+	PostalCode   string  `gorm:"type:VARCHAR(255)"`
 	TrackingCode *string `gorm:"type:VARCHAR(255)"`
 }

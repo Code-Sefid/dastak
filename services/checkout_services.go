@@ -29,78 +29,75 @@ func NewCheckOutService(cfg *config.Config) *CheckOutService {
 	}
 }
 
-
-func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.CheckOut)(*dto.Alert,bool,error){
+func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.CheckOut) (*dto.Alert, bool, error) {
 	tx := c.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-		}else{
+		} else {
 			tx.Commit()
 		}
 	}()
 	var user models.Users
 	if err := tx.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, false , err
+		return nil, false, err
 	}
 
 	var wallet models.Wallet
 	err := tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).First(&wallet).Error
 	if err != nil {
 		tx.Rollback()
-		return &dto.Alert{Message: "کیف پول شما خالی است"},false ,nil
+		return &dto.Alert{Message: "کیف پول شما خالی است"}, false, nil
 	}
-
 
 	var checkout models.CheckOutRequest
 	err = tx.Where("user_id = ?", userID).Order("created_at desc").First(&checkout).Error
-	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
-		return nil,false ,err
-	}else if !errors.Is(err,gorm.ErrRecordNotFound){
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, false, err
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		if checkout.Status == models.PENDINGCHECKOUT {
-			return &dto.Alert{Message: "شما نمیتوانید بیش از یک درخواست برداشت فعال داشته باشید"},false ,nil
+			return &dto.Alert{Message: "شما نمیتوانید بیش از یک درخواست برداشت فعال داشته باشید"}, false, nil
 		}
 	}
-	
+
 	if req.Amount <= 50000 {
 		return &dto.Alert{
 			Message: "حداقل میزان برداشت باید 50,000 تومان باشد",
-		}, false,nil
+		}, false, nil
 	}
-	
-	if req.Amount >= 50000 && wallet.Amount >= req.Amount{
+
+	if req.Amount >= 50000 && wallet.Amount >= req.Amount {
 		amount := wallet.Amount - req.Amount
-		err = tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).Update("amount" , amount).Error
+		err = tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).Update("amount", amount).Error
 		if err != nil {
-			return nil, false,err
+			return nil, false, err
 		}
-	
-		 checkOut := models.CheckOutRequest{
+
+		checkOut := models.CheckOutRequest{
 			UserID: user.ID,
 			Amount: req.Amount,
 			Status: models.PENDINGCHECKOUT,
 		}
-	
+
 		err = tx.Model(&models.CheckOutRequest{}).Create(&checkOut).Error
 		if err != nil {
-			return nil, false,err
+			return nil, false, err
 		}
-	
+
 		transactions := models.Transactions{
-			UserID: userID,
-			Description: "درخواست برداشت شما به مبلغ " + strconv.Itoa(req.Amount) + " تومان در حال بررسی است",
-			Amount: float64(req.Amount),
-			FactorID: 1,
+			UserID:          userID,
+			Description:     "درخواست برداشت شما به مبلغ " + strconv.Itoa(req.Amount) + " تومان در حال بررسی است",
+			Amount:          float64(req.Amount),
+			FactorID:        1,
 			TransactionType: models.WITHDRAW,
 		}
-		
+
 		err = tx.Model(&models.Transactions{}).Create(&transactions).Error
 		if err != nil {
-			return nil,false, err 
+			return nil, false, err
 		}
-		
-	
-		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"},true,nil
+
+		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"}, true, nil
 	}
-	return &dto.Alert{Message: "مقدار موجودی شما کمتر از حد برداشت است"},false,nil
+	return &dto.Alert{Message: "مقدار موجودی شما کمتر از حد برداشت است"}, false, nil
 }

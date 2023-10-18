@@ -35,7 +35,6 @@ func GenerateFactorCode() string {
 	return result
 }
 
-
 func Separate(Number int) string {
 	numberStr := strconv.Itoa(Number)
 

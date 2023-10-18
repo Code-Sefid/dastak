@@ -21,12 +21,11 @@ func NewTransactionsHandler(cfg *config.Config) *TransactionsService {
 	}
 }
 
-
 func (h *TransactionsService) GetAll(c *gin.Context) {
 	userID := int(c.Value(constants.UserIdKey).(float64))
 
 	res, err := h.service.GetByFilter(c, userID)
-	if err != nil{
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError,
 			helper.GenerateBaseResponseWithError(false, err, "لطفا دوباره مجدد امتحان بکنید یا با پشتیبانی ارتباط بگیرید"))
 		return

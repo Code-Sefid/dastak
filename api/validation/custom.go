@@ -16,8 +16,8 @@ var fieldTranslations = map[string]string{
 	"Mobile":      "شماره موبایل",
 	"Password":    "رمز عبور",
 	"Name":        "نام",
-	"Title" : "عنوان",
-	"Price" : "قیمت",
+	"Title":       "عنوان",
+	"Price":       "قیمت",
 }
 
 func translateField(fieldName string) string {

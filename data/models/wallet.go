@@ -1,21 +1,18 @@
 package models
 
-
-
 type TransactionType string
 type CheckOutType string
 
 const (
-	SALES    TransactionType = "sales"
-	WITHDRAW TransactionType = "withdraw"
-	Referral TransactionType = "referral"
+	SALES     TransactionType = "sales"
+	WITHDRAW  TransactionType = "withdraw"
+	Referral  TransactionType = "referral"
 	CORRECTED TransactionType = "corrected"
-	DASTAK TransactionType = "dastak"
+	DASTAK    TransactionType = "dastak"
 
 	PENDINGCHECKOUT CheckOutType = "pending"
-	REJECT CheckOutType = "reject"
-	DONE CheckOutType = "done"
-	
+	REJECT          CheckOutType = "reject"
+	DONE            CheckOutType = "done"
 )
 
 type Wallet struct {
@@ -39,20 +36,20 @@ type Transactions struct {
 
 	Description string
 
-	FactorID   int
-	Factor     Factors `gorm:"foreignKey:FactorID"`
+	FactorID int
+	Factor   Factors `gorm:"foreignKey:FactorID"`
 
-	User Users `gorm:"foreignKey:UserID"`
-	UserID      int
+	User   Users `gorm:"foreignKey:UserID"`
+	UserID int
 
 	TransactionType TransactionType `gorm:"type:VARCHAR(255)"`
 
-	Amount      float64
+	Amount float64
 }
 
 type CheckOutRequest struct {
 	BaseModel
-	UserID int 
+	UserID int
 	Amount int
 	Status CheckOutType
 }

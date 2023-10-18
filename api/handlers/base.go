@@ -77,7 +77,7 @@ func Update[Ti any, To any](c *gin.Context, caller func(ctx context.Context, id 
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(res, true, ""))
 }
 
-func Delete(c *gin.Context, caller func(ctx context.Context, id int , userID int) error) {
+func Delete(c *gin.Context, caller func(ctx context.Context, id int, userID int) error) {
 	userID := int(c.Value(constants.UserIdKey).(float64))
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	if id == 0 {
@@ -86,12 +86,12 @@ func Delete(c *gin.Context, caller func(ctx context.Context, id int , userID int
 		return
 	}
 
-	err := caller(c, id , userID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
+	err := caller(c, id, userID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
 			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
-	}else if errors.Is(err, gorm.ErrRecordNotFound) {
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound,
 			helper.GenerateBaseResponseWithError(false, err, "موردی با این مشخصات یافت نشد"))
 		return
@@ -99,7 +99,7 @@ func Delete(c *gin.Context, caller func(ctx context.Context, id int , userID int
 	c.JSON(http.StatusOK, helper.GenerateBaseResponse(nil, true, ""))
 }
 
-func GetById[To any](c *gin.Context, caller func(c context.Context, id int ,userID int) (*To, error)) {
+func GetById[To any](c *gin.Context, caller func(c context.Context, id int, userID int) (*To, error)) {
 	userID := int(c.Value(constants.UserIdKey).(float64))
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	if id == 0 {
@@ -108,12 +108,12 @@ func GetById[To any](c *gin.Context, caller func(c context.Context, id int ,user
 		return
 	}
 
-	res, err := caller(c, id,userID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
+	res, err := caller(c, id, userID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
 			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
-	}else if errors.Is(err, gorm.ErrRecordNotFound) {
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound,
 			helper.GenerateBaseResponseWithError(false, err, "موردی با این مشخصات یافت نشد"))
 		return
@@ -130,11 +130,11 @@ func GetByUserId[To any](c *gin.Context, caller func(c context.Context, id int) 
 	}
 
 	res, err := caller(c, userID)
-	if err != nil && !errors.Is(err,gorm.ErrRecordNotFound){
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
 			helper.GenerateBaseResponseWithError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
 		return
-	}else if errors.Is(err,gorm.ErrRecordNotFound){
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound,
 			helper.GenerateBaseResponseWithError(false, err, ""))
 		return

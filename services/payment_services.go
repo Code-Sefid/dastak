@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type PaymentService struct {
 	logger   logging.Logger
 	cfg      *config.Config
@@ -32,13 +31,13 @@ func NewPaymentService(cfg *config.Config) *PaymentService {
 	database := db.GetDb()
 	logger := logging.NewLogger(cfg)
 	return &PaymentService{
-		cfg:          cfg,
-		database:     database,
-		logger:       logger,
+		cfg:      cfg,
+		database: database,
+		logger:   logger,
 	}
 }
 
-func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto.PaymentResponse,*dto.Alert, error) {
+func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto.PaymentResponse, *dto.Alert, error) {
 	tx := p.database.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil || tx.Error != nil {
@@ -51,29 +50,28 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	var factor models.Factors
 	err := tx.Model(&models.Factors{}).Where("code = ?", req.Code).First(&factor).Error
 	if err != nil {
-		return nil, &dto.Alert{Message: "فاکتور شما وجود ندارن یا به مشکل خورده"},err
+		return nil, &dto.Alert{Message: "فاکتور شما وجود ندارن یا به مشکل خورده"}, err
 	}
 
 	var FactorProducts []*models.FactorProducts
 
-	err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
+	err = tx.Model(models.FactorProducts{}).Where("factor_id = ?", factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
 
 	if err != nil {
-		return nil , nil,err
+		return nil, nil, err
 	}
 
 	var sum int
-	for _,item := range FactorProducts{
+	for _, item := range FactorProducts {
 		sum += item.Count * item.Product.Price
 	}
 
 	if factor.OffPercent != 0 {
 		sum = sum / 100 * (100 - int(factor.OffPercent))
 	}
-	onePercent := float32(sum) / 100   
+	onePercent := float32(sum) / 100
 	onePercent = (onePercent * 4)
 	sum += int(onePercent)
-
 
 	merchant := p.cfg.Zibal.Token
 	data := fmt.Sprintf(`{
@@ -81,9 +79,7 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		"amount": %d,
 		"callbackUrl": "%s",
 		"orderId": "%s"
-	}`, merchant,sum * 10,p.cfg.Zibal.CallbackUrl +"/factor/" + req.Code, factor.Code)
-	
-
+	}`, merchant, sum*10, p.cfg.Zibal.CallbackUrl+"/factor/"+req.Code, factor.Code)
 
 	result, err := p.postToZibal("v1/request", data)
 	if err != nil {
@@ -102,11 +98,10 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	}
 	trackIDStr := strconv.Itoa(paymentResponse.TrackID)
 
-	paymentResponse.Url = fmt.Sprintf("https://gateway.zibal.ir/start/%s",trackIDStr)
+	paymentResponse.Url = fmt.Sprintf("https://gateway.zibal.ir/start/%s", trackIDStr)
 
 	return &paymentResponse, nil, nil
 }
-
 
 func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (bool, *dto.Alert, error) {
 	tx := p.database.WithContext(ctx).Begin()
@@ -127,7 +122,6 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 		return false, &dto.Alert{Message: "خطا در پایگاه داده"}, err
 	}
-
 
 	var factorDetail models.FactorDetail
 	err = tx.Model(&models.FactorDetail{}).Where("factor_id = ?", factor.ID).First(&factorDetail).Error
@@ -163,22 +157,21 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		return false, &dto.Alert{Message: "پاسخ از درگاه پرداخت نامعتبر است"}, err
 	}
 
-
-	if  (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING) {
+	if (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING) {
 		var FactorProducts []*models.FactorProducts
 
-		err  = tx.Model(models.FactorProducts{}).Where("factor_id = ?",factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
-	
+		err = tx.Model(models.FactorProducts{}).Where("factor_id = ?", factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
+
 		if err != nil {
-			return false,nil,err
+			return false, nil, err
 		}
-	
+
 		var sum int
 
-		for _,item := range FactorProducts{
+		for _, item := range FactorProducts {
 			sum += item.Count * item.Product.Price
 		}
-	
+
 		if factor.OffPercent != 0 {
 			sum = sum / 100 * (100 - int(factor.OffPercent))
 		}
@@ -190,30 +183,30 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		if factor.User.ReferralMobile != "" {
 			onePercent = (onePercent * 5)
 			transactionDastak := models.Transactions{
-				FactorID: factor.ID,
-				Description: fmt.Sprintf("درصد رفرال دستک از طرف %s" , factorDetail.FullName),
-				UserID: factor.UserID,
-				Amount: float64(onePercent),
+				FactorID:        factor.ID,
+				Description:     fmt.Sprintf("درصد رفرال دستک از طرف %s", factorDetail.FullName),
+				UserID:          factor.UserID,
+				Amount:          float64(onePercent),
 				TransactionType: models.DASTAK,
 			}
-		
+
 			err = tx.Create(&transactionDastak).Error
 			if err != nil {
 				tx.Rollback()
 				return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
 			}
-		}else{
+		} else {
 			onePercent = (onePercent * 4)
 			// referral = int(onePercent)
 
 			transactionDastak := models.Transactions{
-				FactorID: factor.ID,
-				Description: fmt.Sprintf("درصد رفرال دستک از طرف %s" , factorDetail.FullName),
-				UserID: factor.UserID,
-				Amount: float64(onePercent),
+				FactorID:        factor.ID,
+				Description:     fmt.Sprintf("درصد رفرال دستک از طرف %s", factorDetail.FullName),
+				UserID:          factor.UserID,
+				Amount:          float64(onePercent),
 				TransactionType: models.DASTAK,
 			}
-		
+
 			err = tx.Create(&transactionDastak).Error
 			if err != nil {
 				tx.Rollback()
@@ -227,7 +220,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			// 	Amount: float64(onePercent),
 			// 	TransactionType: models.DASTAK,
 			// }
-		
+
 			// err = tx.Create(&transactionReffrel).Error
 			// if err != nil {
 			// 	tx.Rollback()
@@ -236,21 +229,19 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 
 		}
 
-
 		transaction := models.Transactions{
-			FactorID: factor.ID,
-			Description: fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد" , factorDetail.FullName),
-			UserID: factor.UserID,
-			Amount: float64(sum),
+			FactorID:        factor.ID,
+			Description:     fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد", factorDetail.FullName),
+			UserID:          factor.UserID,
+			Amount:          float64(sum),
 			TransactionType: models.SALES,
 		}
-	
+
 		err = tx.Create(&transaction).Error
 		if err != nil {
 			tx.Rollback()
 			return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
 		}
-
 
 		var wallet models.Wallet
 		err = tx.Model(&models.Wallet{}).Where("user_id = ?", factor.UserID).First(&wallet).Error
@@ -277,27 +268,25 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 
 		factor.Status = models.PAID
-		err  = tx.Save(&factor).Error
+		err = tx.Save(&factor).Error
 		if err != nil {
 			tx.Rollback()
 			return false, &dto.Alert{Message: "مشکلی در تغییر وضعیت فاکتور پیش امده است"}, err
 		}
 
-		p.SendPayment(factorDetail.Mobile,factor.User.FullName,factorDetail.FullName,factor.Code)
+		p.SendPayment(factorDetail.Mobile, factor.User.FullName, factorDetail.FullName, factor.Code)
 		amountStr := helper.Separate(sum)
-		p.SendPaymentToUser(factorDetail.FullName,amountStr,factor.Code,factorDetail.Mobile,factor.User.Mobile)
+		p.SendPaymentToUser(factorDetail.FullName, amountStr, factor.Code, factorDetail.Mobile, factor.User.Mobile)
 		return true, nil, nil
 	}
 	return false, nil, nil
 }
 
-
-// Helper 
+// Helper
 
 func (p *PaymentService) postToZibal(path string, parameters string) (string, error) {
 	var jsonStr = []byte(parameters)
 	var url = "https://gateway.zibal.ir/" + path
-
 
 	fmt.Println(bytes.NewBuffer(jsonStr))
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
@@ -314,7 +303,6 @@ func (p *PaymentService) postToZibal(path string, parameters string) (string, er
 	}
 	defer resp.Body.Close()
 
-
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
 
@@ -326,12 +314,12 @@ func (p *PaymentService) postToZibal(path string, parameters string) (string, er
 	return string(body), nil
 }
 
-func (p *PaymentService) verifyResult(result int) bool{
+func (p *PaymentService) verifyResult(result int) bool {
 	switch result {
-		case 100: 
-			return true
-		case 201: 
-			return true
+	case 100:
+		return true
+	case 201:
+		return true
 	default:
 		return false
 
@@ -339,40 +327,40 @@ func (p *PaymentService) verifyResult(result int) bool{
 }
 
 func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor string) error {
-    url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167441@%s;%s;%s;&to=%s", shopName, fullName, codeFactor, mobile)
+	url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167441@%s;%s;%s;&to=%s", shopName, fullName, codeFactor, mobile)
 
 	print(url)
-    response, err := http.Get(url)
-    if err != nil {
-        return err
-    }
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
 	log.Print(response)
 
-    defer response.Body.Close()
+	defer response.Body.Close()
 
-    if response.StatusCode != http.StatusOK {
-        return fmt.Errorf("HTTP: %d", response.StatusCode)
-    }
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP: %d", response.StatusCode)
+	}
 
-    return nil
+	return nil
 }
 
-func (s *PaymentService) SendPaymentToUser(fullName, amount, code, mobile,userMobile string) error {
-    url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167730@%s;%s;%s;%s;&to=%s", fullName, amount, code, mobile,userMobile)
+func (s *PaymentService) SendPaymentToUser(fullName, amount, code, mobile, userMobile string) error {
+	url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167730@%s;%s;%s;%s;&to=%s", fullName, amount, code, mobile, userMobile)
 
 	print(url)
-    response, err := http.Get(url)
-    if err != nil {
-        return err
-    }
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
 	log.Print(response)
-    defer response.Body.Close()
+	defer response.Body.Close()
 
-    if response.StatusCode != http.StatusOK {
-        return fmt.Errorf("HTTP: %d", response.StatusCode)
-    }
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP: %d", response.StatusCode)
+	}
 
-    return nil
+	return nil
 }
 
 // End Helper

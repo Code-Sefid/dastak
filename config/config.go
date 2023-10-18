@@ -75,10 +75,9 @@ type JWTConfig struct {
 }
 
 type Zibal struct {
-	Token string
+	Token       string
 	CallbackUrl string
 }
-
 
 func GetConfig() *Config {
 	cfgPath := getConfigPath(os.Getenv("APP_ENV"))

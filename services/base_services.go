@@ -33,7 +33,7 @@ type BaseService[T any, Tc any, Tu any, Tr any] struct {
 	Preloads []preload
 }
 type Updater interface {
-    UpdateFields(updateData interface{}) error
+	UpdateFields(updateData interface{}) error
 }
 
 func NewBaseService[T any, Tc any, Tu any, Tr any](cfg *config.Config) *BaseService[T, Tc, Tu, Tr] {
@@ -78,11 +78,10 @@ func (s *BaseService[T, Tc, Tu, Tr]) CreateByUserId(ctx context.Context, req *Tc
 	tx.Commit()
 
 	bm, _ := common.TypeConverter[models.BaseModel](model)
-	return s.GetById(ctx, bm.ID,userID)
+	return s.GetById(ctx, bm.ID, userID)
 }
 
-
-func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int , userID int , req *Tu) (*Tr, error) {
+func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, userID int, req *Tu) (*Tr, error) {
 
 	updateMap, _ := common.TypeConverter[map[string]interface{}](req)
 	snakeMap := map[string]interface{}{}
@@ -94,7 +93,7 @@ func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int , userID
 	model := new(T)
 	tx := s.Database.WithContext(ctx).Begin()
 	if err := tx.Model(model).
-		Where("id = ? and user_id = ? AND deleted_by is null", id,userID).
+		Where("id = ? and user_id = ? AND deleted_by is null", id, userID).
 		Updates(snakeMap).
 		Error; err != nil {
 		tx.Rollback()
@@ -102,12 +101,11 @@ func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int , userID
 		return nil, err
 	}
 	tx.Commit()
-	return s.GetById(ctx, id,userID)
+	return s.GetById(ctx, id, userID)
 
 }
 
-
-func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int,userID int) error {
+func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int, userID int) error {
 	tx := s.Database.WithContext(ctx).Begin()
 
 	model := new(T)
@@ -122,7 +120,7 @@ func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int,userID i
 	}
 	if err := tx.
 		Model(model).
-		Where("id = ? AND user_id = ? AND deleted_by is null", id,userID).
+		Where("id = ? AND user_id = ? AND deleted_by is null", id, userID).
 		Updates(deleteMap).
 		Error; err != nil {
 		tx.Rollback()
@@ -164,11 +162,11 @@ func (s *BaseService[T, Tc, Tu, Tr]) GetByIdWithoutUserID(ctx context.Context, i
 	return common.TypeConverter[Tr](model)
 }
 
-func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int,userID int) (*Tr, error) {
+func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int, userID int) (*Tr, error) {
 	model := new(T)
 	db := Preload(s.Database, s.Preloads)
 	err := db.
-		Where("id = ? AND user_id = ? AND deleted_by is null", id,userID).
+		Where("id = ? AND user_id = ? AND deleted_by is null", id, userID).
 		First(model).
 		Error
 

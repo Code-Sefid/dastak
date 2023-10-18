@@ -2,11 +2,11 @@ package dto
 
 // Register struct
 type Register struct {
-	FullName    string `json:"full_name" binding:"required,min=3" `
-	AccountType int    `json:"account_type" binding:"required" `
-	SaleCount   uint   `json:"sale_count" binding:"required" `
-	Mobile      string `json:"mobile" binding:"required,min=11,max=11,mobile"`
-	Referral     *string `json:"referral" bind:"min=11,max=11,mobile"`
+	FullName    string  `json:"full_name" binding:"required,min=3" `
+	AccountType int     `json:"account_type" binding:"required" `
+	SaleCount   uint    `json:"sale_count" binding:"required" `
+	Mobile      string  `json:"mobile" binding:"required,min=11,max=11,mobile"`
+	Referral    *string `json:"referral" bind:"min=11,max=11,mobile"`
 }
 
 // Login struct

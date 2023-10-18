@@ -9,5 +9,5 @@ import (
 
 func CheckOut(r *gin.RouterGroup, cfg *config.Config) {
 	h := handlers.NewCheckOutHandler(cfg)
-	r.POST("",middlewares.Authentication(cfg), h.CheckOut)
+	r.POST("", middlewares.Authentication(cfg), h.CheckOut)
 }

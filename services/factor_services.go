@@ -46,6 +46,7 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 		UserID:     userId,
 		Status:     models.CREATED,
 		OffPercent: request.OffPercent,
+		Description: request.Description,
 	}
 
 	err := tx.Create(&newFactor).Error
@@ -237,6 +238,7 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 		ID:         factor.ID,
 		Code:       factor.Code,
 		OffPercent: factor.OffPercent,
+		Description: factor.Description,
 		Status:     f.ConvertStringToStatus(factor.Status),
 		Products:   products,
 		Account: &dto.AccountResponse{

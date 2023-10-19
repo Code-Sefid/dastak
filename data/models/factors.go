@@ -24,6 +24,7 @@ type Factors struct {
 	UserID     int
 	Code       string
 	OffPercent uint
+	Description string
 	Status     FactorStatus
 }
 

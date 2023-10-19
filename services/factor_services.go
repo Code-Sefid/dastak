@@ -114,6 +114,7 @@ func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput, us
 			Code:       factor.Code,
 			OffPercent: factor.OffPercent,
 			Status:     f.ConvertStringToStatus(factor.Status),
+			Description: factor.Description,
 		}
 	}
 

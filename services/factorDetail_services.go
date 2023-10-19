@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/soheilkhaledabdi/dastak/api/dto"
@@ -158,7 +160,7 @@ func (s *FactorDetailService) AddTrackingCode(ctx context.Context, req *dto.AddT
 	}()
 
 	var factor models.Factors
-	if err := tx.Where("code = ?" , req.Code).First(&factor).Error; err != nil {
+	if err := tx.Where("code = ?" , req.Code).Preload("User").First(&factor).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
@@ -181,5 +183,27 @@ func (s *FactorDetailService) AddTrackingCode(ctx context.Context, req *dto.AddT
 		return err
 	}
 
+	s.SendTrackingCode(factorDetail.FullName,factor.User.FullName,req.TrackingCode,factorDetail.Mobile)
+
 	return nil
 }
+
+// Helper Functions
+func (s *FactorDetailService) SendTrackingCode(fullName, shopName, trackingCode,mobile string) error {
+	url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@168063@%s;%s;%s;&to=%s", fullName, shopName,trackingCode,mobile)
+
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP: %d", response.StatusCode)
+	}
+
+	return nil
+}
+
+// End Helper Functions

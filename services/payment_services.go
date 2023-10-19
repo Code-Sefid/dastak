@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/soheilkhaledabdi/dastak/api/dto"
 	"github.com/soheilkhaledabdi/dastak/api/helper"
@@ -326,9 +327,18 @@ func (p *PaymentService) verifyResult(result int) bool {
 	}
 }
 
-func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor string) error {
-	url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167441@%s;%s;%s;&to=%s", shopName, fullName, codeFactor, mobile)
+const payamakAPIURL = "http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3"
+const username = "09135882813"
+const password = "T13Y7"
 
+func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor string) error {
+	values := url.Values{}
+	values.Set("username", username)
+	values.Set("password", password)
+	values.Set("text", fmt.Sprintf("@167441@%s;%s;%s;", shopName, fullName, codeFactor))
+	values.Set("to", mobile)
+
+	url := payamakAPIURL + "?" + values.Encode()
 	print(url)
 	response, err := http.Get(url)
 	if err != nil {
@@ -346,7 +356,13 @@ func (s *PaymentService) SendPayment(mobile, fullName, shopName, codeFactor stri
 }
 
 func (s *PaymentService) SendPaymentToUser(fullName, amount, code, mobile, userMobile string) error {
-	url := fmt.Sprintf("http://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber3?username=09135882813&password=T13Y7&text=@167730@%s;%s;%s;%s;&to=%s", fullName, amount, code, mobile, userMobile)
+	values := url.Values{}
+	values.Set("username", username)
+	values.Set("password", password)
+	values.Set("text", fmt.Sprintf("@167730@%s;%s;%s;%s;", fullName, amount, code, mobile))
+	values.Set("to", userMobile)
+
+	url := payamakAPIURL + "?" + values.Encode()
 
 	print(url)
 	response, err := http.Get(url)

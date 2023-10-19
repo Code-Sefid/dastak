@@ -176,6 +176,12 @@ func (s *FactorDetailService) AddTrackingCode(ctx context.Context, req *dto.AddT
 		return err
 	}
 
+	factor.Status = models.POSTED
+	err = tx.Save(&factor).Error
+	if err != nil {
+		return err
+	}
+
 	factorDetail.TrackingCode = req.TrackingCode
 
 	err = tx.Save(&factorDetail).Error

@@ -40,6 +40,12 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 	}()
 
 	code := helper.GenerateFactorCode()
+		var postalCost int
+		if request.PostalCost == 0 {
+			postalCost = 35000
+		} else {
+			postalCost = request.PostalCost
+		}
 
 	newFactor := models.Factors{
 		Code:       code,
@@ -47,6 +53,7 @@ func (f *FactorService) Create(ctx context.Context, userId int, request dto.Crea
 		Status:     models.CREATED,
 		OffPercent: request.OffPercent,
 		Description: request.Description,
+		PostalCost: postalCost,	
 	}
 
 	err := tx.Create(&newFactor).Error
@@ -240,6 +247,7 @@ func (f *FactorService) GetByCode(ctx context.Context, code string) (*dto.Factor
 		Code:       factor.Code,
 		OffPercent: factor.OffPercent,
 		Description: factor.Description,
+		PostalCost: factor.PostalCost,
 		Status:     f.ConvertStringToStatus(factor.Status),
 		Products:   products,
 		Account: &dto.AccountResponse{

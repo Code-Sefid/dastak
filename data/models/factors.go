@@ -25,6 +25,7 @@ type Factors struct {
 	Code       string
 	OffPercent uint
 	Description string
+	PostalCost int
 	Status     FactorStatus
 }
 

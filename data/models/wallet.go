@@ -20,6 +20,7 @@ type Wallet struct {
 	User   Users `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	UserId int
 	Amount int
+	LockAmount int
 }
 
 type BankAccounts struct {

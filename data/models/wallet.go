@@ -9,6 +9,7 @@ const (
 	Referral  TransactionType = "referral"
 	CORRECTED TransactionType = "corrected"
 	DASTAK    TransactionType = "dastak"
+	GIFT 	TransactionType = "gift"
 
 	PENDINGCHECKOUT CheckOutType = "pending"
 	REJECT          CheckOutType = "reject"

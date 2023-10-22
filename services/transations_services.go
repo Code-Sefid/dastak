@@ -55,8 +55,12 @@ func (s *TransactionsService) GetByFilter(ctx context.Context, userId int) ([]*d
 			title = "پرداخت مشتری"
 		} else if item.TransactionType == models.WITHDRAW {
 			title = "برداشت از کیف پول"
-		} else {
+		} else if item.TransactionType == models.Referral {
 			title = "سود همکاری"
+		}else if item.TransactionType == models.GIFT{
+			title = "هدیه ورود به دستک"
+		} else {
+			title = "تراکنش"
 		}
 		responses = append(responses, &dto.TransactionsResponse{
 			Title:   title,

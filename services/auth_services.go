@@ -161,8 +161,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 
 			transactions := models.Transactions{
 				UserID: userReferral.ID,
-				TransactionType: models.Referral,
-				// FactorID: 1,
+				TransactionType: models.GIFT,
 				Amount: 15000,
 				Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
 			}
@@ -185,8 +184,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 
 			transactions := models.Transactions{
 				UserID: userReferral.ID,
-				// FactorID: 1,
-				TransactionType: models.Referral,
+				TransactionType: models.GIFT,
 				Amount: 15000,
 				Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
 			}
@@ -230,7 +228,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		mainTransactions := models.Transactions{
 			// FactorID: 0,
 			UserID: user.ID,
-			TransactionType: models.Referral,
+			TransactionType: models.GIFT,
 			Amount: 15000,
 			Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
 		}

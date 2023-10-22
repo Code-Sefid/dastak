@@ -116,6 +116,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 	}
 
 	password := common.GenerateOtp()
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		a.logger.Error(logging.General, logging.HashPassword, err.Error(), nil)
@@ -132,11 +133,42 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 			return nil, &dto.Alert{Message: "شماره موبایل رفرال شما وجود ندارد"}, false, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials}
 		}
 
-		if request.Referral != nil && *request.Referral == request.Mobile {
+		if *request.Referral == request.Mobile {
 			return nil, &dto.Alert{Message: "شماره تلفن شما با رفرال یکسان است"}, false, nil
 		}
 
+		userReferral, err := a.GetUserByMobile(*request.Referral)
+		if err != nil {
+			return nil, nil, false, err
+		}
+
 		referral = *request.Referral
+
+		var walletReferral models.Wallet
+		err = tx.Where("user_id = ?", userReferral.ID).First(&walletReferral).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil, false, err
+		} else if errors.Is(err, gorm.ErrRecordNotFound) {
+			wallet := models.Wallet{
+				UserId:     userReferral.ID,
+				Amount:     0,
+				LockAmount: 15000,
+			}
+			err = tx.Create(&wallet).Error
+			if err != nil {
+				return nil, nil, false, err
+			}
+		} else {
+			update := map[string]interface{}{
+				"lock_amount": walletReferral.LockAmount + 15000,
+			}
+
+			err = tx.Model(&models.Wallet{}).Where("user_id = ?", userReferral.ID).Updates(&update).Error
+
+			if err != nil {
+				return nil, nil, false, err
+			}
+		}
 	}
 
 	user := models.Users{
@@ -154,6 +186,21 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		return nil, nil, false, err
 	}
 
+
+	if request.Referral != nil && *request.Referral != "" {
+		mainWallet := models.Wallet{
+			UserId: int(user.ID),
+			Amount: 15000,
+		}
+		
+		err = tx.Create(&mainWallet).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, nil, false, err
+		}
+	
+	}
+
 	tokenData := tokenDto{UserId: int(user.ID), Mobile: user.Mobile}
 	token, err := a.tokenService.GenerateToken(&tokenData)
 	if err != nil {
@@ -162,6 +209,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 
 	return token, &dto.Alert{Message: "حساب شما با موفقیت ثبت شد"}, true, nil
 }
+
 
 func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*dto.Alert, bool, error) {
 	tx := a.database.WithContext(ctx).Begin()
@@ -244,6 +292,23 @@ func (s *AuthService) ExistsByMobile(mobile string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (s *AuthService) GetUserByMobile(mobile string) (*models.Users, error) {
+	var user models.Users
+	err := s.database.Model(&models.Users{}).
+		Where("mobile = ?", mobile).
+		First(&user).
+		Error
+	if err != nil {
+		s.logger.Error(logging.Postgres, logging.Select, err.Error(), nil)
+		return nil, err
+	}
+
+	if user.DeletedAt.Valid {
+		return nil, nil
+	}
+	return &user,nil
 }
 
 func (s *AuthService) SendOTP(mobile string, code string) error {

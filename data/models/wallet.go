@@ -37,7 +37,7 @@ type Transactions struct {
 
 	Description string
 
-	FactorID int
+	FactorID *int
 	Factor   Factors `gorm:"foreignKey:FactorID"`
 
 	User   Users `gorm:"foreignKey:UserID"`

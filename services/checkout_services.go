@@ -88,7 +88,7 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 			UserID:          userID,
 			Description:     "درخواست برداشت شما به مبلغ " + strconv.Itoa(req.Amount) + " تومان در حال بررسی است",
 			Amount:          float64(req.Amount),
-			FactorID:        1,
+			// FactorID:        *1,
 			TransactionType: models.WITHDRAW,
 		}
 

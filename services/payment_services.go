@@ -192,7 +192,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			log.Print(dastak)
 
 			transactionDastak := models.Transactions{
-				FactorID:        factor.ID,
+				FactorID:        &factor.ID,
 				Description:     fmt.Sprintf("درصد رفرال دستک از طرف %s", factorDetail.FullName),
 				UserID:          factor.UserID,
 				Amount:          float64(dastak),
@@ -207,7 +207,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 
 
 			transactionReferral := models.Transactions{
-				FactorID: factor.ID,
+				FactorID: &factor.ID,
 				Description: fmt.Sprintf("درصد رفرال از طرف %s" , factorDetail.FullName),
 				UserID: factor.UserID,
 				Amount: float64(referralAmount),
@@ -255,7 +255,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			onePercent = (onePercent * 5)
 
 			transactionDastak := models.Transactions{
-				FactorID:        factor.ID,
+				FactorID:        &factor.ID,
 				Description:     fmt.Sprintf("سود دستک %s", factorDetail.FullName),
 				UserID:          factor.UserID,
 				Amount:          float64(onePercent),
@@ -270,7 +270,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 
 		transaction := models.Transactions{
-			FactorID:        factor.ID,
+			FactorID:        &factor.ID,
 			Description:     fmt.Sprintf("پرداخت فاکتور توسط مشتری %s انجام شد", factorDetail.FullName),
 			UserID:          factor.UserID,
 			Amount:          float64(sum),

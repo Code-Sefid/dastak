@@ -71,8 +71,8 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		sum = sum / 100 * (100 - int(factor.OffPercent))
 	}
 	onePercent := float32(sum) / 100
-	onePercent = (onePercent * 4)
-	sum += int(onePercent)
+	onePercent = (onePercent * 5)
+	sum += int(onePercent) + factor.PostalCost
 
 	merchant := p.cfg.Zibal.Token
 	data := fmt.Sprintf(`{
@@ -158,7 +158,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		return false, &dto.Alert{Message: "پاسخ از درگاه پرداخت نامعتبر است"}, err
 	}
 
-	if (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING) {
+	// if (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING) {
 		var FactorProducts []*models.FactorProducts
 
 		err = tx.Model(models.FactorProducts{}).Where("factor_id = ?", factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
@@ -178,16 +178,24 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		}
 
 		var onePercent float32
+		var referralAmount float32
+		var dastak float32
+
 		// var referral int
 		onePercent = float32(sum) / 100
 
 		if factor.User.ReferralMobile != "" {
-			onePercent = (onePercent * 5)
+			referralAmount = (onePercent * 2)
+			log.Print(referralAmount)
+
+			dastak = (onePercent * 3)
+			log.Print(dastak)
+
 			transactionDastak := models.Transactions{
 				FactorID:        factor.ID,
 				Description:     fmt.Sprintf("درصد رفرال دستک از طرف %s", factorDetail.FullName),
 				UserID:          factor.UserID,
-				Amount:          float64(onePercent),
+				Amount:          float64(dastak),
 				TransactionType: models.DASTAK,
 			}
 
@@ -195,14 +203,60 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			if err != nil {
 				tx.Rollback()
 				return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+			}
+
+
+			transactionReferral := models.Transactions{
+				FactorID: factor.ID,
+				Description: fmt.Sprintf("درصد رفرال از طرف %s" , factorDetail.FullName),
+				UserID: factor.UserID,
+				Amount: float64(referralAmount),
+				TransactionType: models.Referral,
+			}
+
+			err = tx.Create(&transactionReferral).Error
+			if err != nil {
+				tx.Rollback()
+				return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
+			}
+
+			var referralUser models.Users
+			err = tx.Model(&models.Users{}).Where("mobile = ?", factor.User.ReferralMobile).First(&referralUser).Error
+			if err != nil {
+				tx.Rollback()
+				return false, &dto.Alert{Message: "مشکلی در گرفتن یوزر رفال وجود دارد"}, err
+			}
+
+			var referralWallet models.Wallet
+			err = tx.Model(&models.Wallet{}).Where("user_id = ?", referralUser.ID).First(&referralWallet).Error
+
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return false, &dto.Alert{Message: "مشکلی در افزایش موجودی کیف پول داریم"}, err
+			}else if errors.Is(err, gorm.ErrRecordNotFound){
+				wallet := models.Wallet{
+					UserId: referralUser.ID,
+					Amount: int(referralAmount),
+				}
+
+				err := tx.Create(&wallet).Error
+				if err != nil {
+					tx.Rollback()
+					return false, &dto.Alert{Message: "مشکل در ساخت کیف پول است"}, err
+				}
+			} else {
+				newAmount := (referralWallet.Amount + int(referralAmount))
+				err = tx.Model(&models.Wallet{}).Where("user_id = ?", referralUser.ID).Updates(map[string]interface{}{"amount": newAmount}).Error
+				if err != nil {
+					tx.Rollback()
+					return false, &dto.Alert{Message: "مشکلی در افزایش موجودی کیف پول داریم"}, err
+				}
 			}
 		} else {
-			onePercent = (onePercent * 4)
-			// referral = int(onePercent)
+			onePercent = (onePercent * 5)
 
 			transactionDastak := models.Transactions{
 				FactorID:        factor.ID,
-				Description:     fmt.Sprintf("درصد رفرال دستک از طرف %s", factorDetail.FullName),
+				Description:     fmt.Sprintf("سود دستک %s", factorDetail.FullName),
 				UserID:          factor.UserID,
 				Amount:          float64(onePercent),
 				TransactionType: models.DASTAK,
@@ -213,21 +267,6 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 				tx.Rollback()
 				return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
 			}
-
-			// transactionReffrel := models.Transactions{
-			// 	FactorID: factor.ID,
-			// 	Description: fmt.Sprintf("درصد رفرال دستک از طرف %s" , factorDetail.FullName),
-			// 	UserID: factor.UserID,
-			// 	Amount: float64(onePercent),
-			// 	TransactionType: models.DASTAK,
-			// }
-
-			// err = tx.Create(&transactionReffrel).Error
-			// if err != nil {
-			// 	tx.Rollback()
-			// 	return false, &dto.Alert{Message: "خطایی در ارتباط با درگاه پرداخت رخ داده است"}, err
-			// }
-
 		}
 
 		transaction := models.Transactions{
@@ -279,7 +318,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		amountStr := helper.Separate(sum)
 		p.SendPaymentToUser(factorDetail.FullName, amountStr, factor.Code, factorDetail.Mobile, factor.User.Mobile)
 		return true, nil, nil
-	}
+	// }
 	return false, nil, nil
 }
 
@@ -304,8 +343,6 @@ func (p *PaymentService) postToZibal(path string, parameters string) (string, er
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

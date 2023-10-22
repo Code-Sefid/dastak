@@ -42,7 +42,7 @@ func (s *TransactionsService) GetByFilter(ctx context.Context, userId int) ([]*d
 
 	var transaction []*models.Transactions
 
-	err := tx.Where("user_id = ? AND (transaction_type = ? OR transaction_type = ?)", userId, models.SALES, models.WITHDRAW).Order("created_at desc").Find(&transaction).Error
+	err := tx.Where("user_id = ? AND (transaction_type = ? OR transaction_type = ? OR transaction_type = ?)", userId, models.SALES, models.WITHDRAW,models.Referral).Order("created_at desc").Find(&transaction).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}

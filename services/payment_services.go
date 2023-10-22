@@ -185,6 +185,14 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		onePercent = float32(sum) / 100
 
 		if factor.User.ReferralMobile != "" {
+
+
+			var userReferral models.Users
+			err := tx.Where("mobile = ?" , factor.User.ReferralMobile).First(&userReferral).Error
+			if err != nil {
+				return false, nil, err
+			}
+
 			referralAmount = (onePercent * 2)
 			log.Print(referralAmount)
 
@@ -209,7 +217,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			transactionReferral := models.Transactions{
 				FactorID: &factor.ID,
 				Description: fmt.Sprintf("درصد رفرال از طرف %s" , factorDetail.FullName),
-				UserID: factor.UserID,
+				UserID: userReferral.ID,
 				Amount: float64(referralAmount),
 				TransactionType: models.Referral,
 			}

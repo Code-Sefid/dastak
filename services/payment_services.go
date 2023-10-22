@@ -158,7 +158,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		return false, &dto.Alert{Message: "پاسخ از درگاه پرداخت نامعتبر است"}, err
 	}
 
-	// if (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING) {
+	if (verifyResponse.Result == 201 || verifyResponse.Result == 100) && (factor.Status == models.PENDING) {
 		var FactorProducts []*models.FactorProducts
 
 		err = tx.Model(models.FactorProducts{}).Where("factor_id = ?", factor.ID).Preload("Product").Preload("Factor").Find(&FactorProducts).Error
@@ -318,7 +318,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		amountStr := helper.Separate(sum)
 		p.SendPaymentToUser(factorDetail.FullName, amountStr, factor.Code, factorDetail.Mobile, factor.User.Mobile)
 		return true, nil, nil
-	// }
+	}
 	return false, nil, nil
 }
 

@@ -158,6 +158,18 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 			if err != nil {
 				return nil, nil, false, err
 			}
+
+			transactions := models.Transactions{
+				FactorID: 0,
+				TransactionType: models.Referral,
+				Amount: 15000,
+				Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
+			}
+	
+			err = tx.Create(&transactions).Error
+			if err != nil {
+				return nil, nil, false, err
+			}
 		} else {
 			update := map[string]interface{}{
 				"lock_amount": walletReferral.LockAmount + 15000,
@@ -165,6 +177,19 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 
 			err = tx.Model(&models.Wallet{}).Where("user_id = ?", userReferral.ID).Updates(&update).Error
 
+			if err != nil {
+				return nil, nil, false, err
+			}
+
+
+			transactions := models.Transactions{
+				FactorID: 0,
+				TransactionType: models.Referral,
+				Amount: 15000,
+				Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
+			}
+	
+			err = tx.Create(&transactions).Error
 			if err != nil {
 				return nil, nil, false, err
 			}
@@ -196,6 +221,19 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		err = tx.Create(&mainWallet).Error
 		if err != nil {
 			tx.Rollback()
+			return nil, nil, false, err
+		}
+
+
+		mainTransactions := models.Transactions{
+			FactorID: 0,
+			TransactionType: models.Referral,
+			Amount: 15000,
+			Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
+		}
+
+		err = tx.Create(&mainTransactions).Error
+		if err != nil {
 			return nil, nil, false, err
 		}
 	

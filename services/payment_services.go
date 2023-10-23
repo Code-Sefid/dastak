@@ -259,6 +259,30 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 					return false, &dto.Alert{Message: "مشکلی در افزایش موجودی کیف پول داریم"}, err
 				}
 			}
+
+				var countOfTransactions int64
+				err = tx.Model(&models.Transactions{}).Where("user_id = ?" , factor.User.ID).Count(&countOfTransactions).Error
+				if err != nil{
+					return false,nil,nil
+				}
+
+				
+				if countOfTransactions == 0 {
+					var refWallet models.Wallet
+					err = tx.Model(&models.Wallet{}).Where("user_id = ?", referralUser.ID).First(&refWallet).Error
+					if err != nil {
+						return false, nil, err
+					}
+			
+					refWallet.LockAmount -= 15000
+					refWallet.Amount += 15000
+					
+					err = tx.Save(&refWallet).Error
+					if err != nil {
+						return false, nil, err
+					}
+				}
+
 		} else {
 			onePercent = (onePercent * 5)
 

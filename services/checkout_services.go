@@ -78,9 +78,6 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		}, false, nil
 	}
 
-
-	
-
 	if req.Amount >= 50000 && wallet.Amount >= req.Amount {
 		amount := wallet.Amount - req.Amount
 		err = tx.Model(&models.Wallet{}).Where("user_id = ?", user.ID).Update("amount", amount).Error
@@ -109,28 +106,6 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		err = tx.Model(&models.Transactions{}).Create(&transactions).Error
 		if err != nil {
 			return nil, false, err
-		}
-
-		if user.ReferralMobile != "" {
-			var refUser models.Users
-			err = tx.Model(&models.Users{}).Where("mobile = ?", user.ReferralMobile).First(&refUser).Error
-			if err != nil {
-				return nil, false, err
-			}
-
-			var refWallet models.Wallet
-			err = tx.Model(&models.Wallet{}).Where("user_id = ?", refUser.ID).First(&refWallet).Error
-			if err != nil {
-				return nil, false, err
-			}
-
-			refWallet.LockAmount -= 15000
-			refWallet.Amount += 15000
-			
-			err := tx.Save(&refWallet).Error
-			if err != nil {
-				return nil,false,err
-			}
 		}
 
 		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"}, true, nil

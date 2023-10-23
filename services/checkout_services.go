@@ -60,11 +60,26 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 		}
 	}
 
-	if req.Amount <= 50000 {
+	var GetCountTransactions int64
+	err = tx.Model(&models.Transactions{}).Where("user_id = ?", userID).Where("transaction_type = ?", models.WITHDRAW).Count(&GetCountTransactions).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, false, err
+	}
+
+	if req.Amount < 500000 && GetCountTransactions == 0 {
 		return &dto.Alert{
-			Message: "حداقل میزان برداشت باید 50,000 تومان باشد",
+			Message: "حداقل میزان برداشت باید 500,000 تومان باشد",
 		}, false, nil
 	}
+
+	if req.Amount <= 100000 && GetCountTransactions > 0 {
+		return &dto.Alert{
+			Message: "حداقل میزان برداشت باید 100,000 تومان باشد",
+		}, false, nil
+	}
+
+
+	
 
 	if req.Amount >= 50000 && wallet.Amount >= req.Amount {
 		amount := wallet.Amount - req.Amount
@@ -88,13 +103,34 @@ func (c *CheckOutService) CheckOutMony(ctx context.Context, userID int, req dto.
 			UserID:          userID,
 			Description:     "درخواست برداشت شما به مبلغ " + strconv.Itoa(req.Amount) + " تومان در حال بررسی است",
 			Amount:          float64(req.Amount),
-			// FactorID:        *1,
 			TransactionType: models.WITHDRAW,
 		}
 
 		err = tx.Model(&models.Transactions{}).Create(&transactions).Error
 		if err != nil {
 			return nil, false, err
+		}
+
+		if user.ReferralMobile != "" {
+			var refUser models.Users
+			err = tx.Model(&models.Users{}).Where("mobile = ?", user.ReferralMobile).First(&refUser).Error
+			if err != nil {
+				return nil, false, err
+			}
+
+			var refWallet models.Wallet
+			err = tx.Model(&models.Wallet{}).Where("user_id = ?", refUser.ID).First(&refWallet).Error
+			if err != nil {
+				return nil, false, err
+			}
+
+			refWallet.LockAmount -= 15000
+			refWallet.Amount += 15000
+			
+			err := tx.Save(&refWallet).Error
+			if err != nil {
+				return nil,false,err
+			}
 		}
 
 		return &dto.Alert{Message: "موجودی شما با موفقیت برداشت شد"}, true, nil

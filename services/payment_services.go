@@ -71,15 +71,15 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		sum = sum / 100 * (100 - int(factor.OffPercent))
 	}
 
-	// if factor.PostalCost != 0 {
-	// 	sum += int(factor.PostalCost)
-	// }
+	if factor.PostalCost != 0 {
+		sum += int(factor.PostalCost)
+	}
 	
 	
 	onePercent := float32(sum) / 100
 	onePercent = (onePercent * 5)
-	sum += int(onePercent) + factor.PostalCost
-
+	sum += int(onePercent)
+	
 	merchant := p.cfg.Zibal.Token
 	data := fmt.Sprintf(`{
 		"merchant": "%s",

@@ -70,6 +70,12 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	if factor.OffPercent != 0 {
 		sum = sum / 100 * (100 - int(factor.OffPercent))
 	}
+
+	if factor.PostalCost != 0 {
+		sum += int(factor.PostalCost)
+	}
+	
+	
 	onePercent := float32(sum) / 100
 	onePercent = (onePercent * 5)
 	sum += int(onePercent) + factor.PostalCost
@@ -177,6 +183,10 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			sum = sum / 100 * (100 - int(factor.OffPercent))
 		}
 
+		if factor.PostalCost != 0 {
+			sum += int(factor.PostalCost)
+		}
+
 		var onePercent float32
 		var referralAmount float32
 		var dastak float32
@@ -194,10 +204,9 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			}
 
 			referralAmount = (onePercent * 2)
-			log.Print(referralAmount)
 
 			dastak = (onePercent * 3)
-			log.Print(dastak)
+
 
 			transactionDastak := models.Transactions{
 				FactorID:        &factor.ID,

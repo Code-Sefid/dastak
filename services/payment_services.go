@@ -409,12 +409,12 @@ func (s *PaymentService) SendPaymentToUser(fullName, amount, code, mobile, userM
 
 	url := payamakAPIURL + "?" + values.Encode()
 
-	print(url)
+
 	response, err := http.Get(url)
 	if err != nil {
 		return err
 	}
-	log.Print(response)
+	
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {

@@ -65,11 +65,6 @@ func (s *TokenService) GenerateToken(token *tokenDto) (*dto.TokenDetail, error) 
 
 	db := db.GetDb()
 
-	existingToken := models.JWTToken{}
-	if err := db.Where("user_id = ?", token.UserId).First(&existingToken).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
-		}
 		tokenModel := models.JWTToken{
 			UserID:                token.UserId,
 			AccessToken:           td.AccessToken,
@@ -79,23 +74,14 @@ func (s *TokenService) GenerateToken(token *tokenDto) (*dto.TokenDetail, error) 
 		if err := db.Create(&tokenModel).Error; err != nil {
 			return nil, err
 		}
-	} else {
-		existingToken.AccessToken = td.AccessToken
-		existingToken.AccessTokenExpireTime = time.Unix(td.AccessTokenExpireTime, 0)
-		existingToken.RefreshToken = td.RefreshToken
-		if err := db.Save(&existingToken).Error; err != nil {
-			return nil, err
-		}
-	}
 
 	return td, nil
 }
 
 func (s *TokenService) VerifyToken(token string) (*jwt.Token, error) {
-
 	db := db.GetDb()
 	var tokenModel models.JWTToken
-	if err := db.Where("access_token = ? AND user_id IS NOT NULL", token).First(&tokenModel).Error; err != nil {
+	if err := db.Where("access_token = ?", token).First(&tokenModel).Error; err != nil {
 		return nil, err
 	}
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {

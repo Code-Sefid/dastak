@@ -177,16 +177,8 @@ func (s *FactorDetailService) AddTrackingCode(ctx context.Context, req *dto.AddT
 	}
 
 	factor.Status = models.POSTED
+
 	err = tx.Save(&factor).Error
-	if err != nil {
-		return err
-	}
-
-	update := map[string]interface{}{
-		"status": models.POSTED,
-	}
-
-	err = tx.Model(&factorDetail).Updates(update).Error
 	if err != nil {
 		return err
 	}

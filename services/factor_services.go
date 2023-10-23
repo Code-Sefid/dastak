@@ -120,6 +120,7 @@ func (f *FactorService) GetAll(ctx context.Context, req *dto.PaginationInput, us
 			ID:         factor.ID,
 			Code:       factor.Code,
 			OffPercent: factor.OffPercent,
+			PostalCost: factor.PostalCost,
 			Status:     f.ConvertStringToStatus(factor.Status),
 			Description: factor.Description,
 		}

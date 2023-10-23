@@ -71,9 +71,9 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		sum = sum / 100 * (100 - int(factor.OffPercent))
 	}
 
-	if factor.PostalCost != 0 {
-		sum += int(factor.PostalCost)
-	}
+	// if factor.PostalCost != 0 {
+	// 	sum += int(factor.PostalCost)
+	// }
 	
 	
 	onePercent := float32(sum) / 100
@@ -183,9 +183,9 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			sum = sum / 100 * (100 - int(factor.OffPercent))
 		}
 
-		if factor.PostalCost != 0 {
-			sum += int(factor.PostalCost)
-		}
+		// if factor.PostalCost != 0 {
+		// 	sum += int(factor.PostalCost)
+		// }
 
 		var onePercent float32
 		var referralAmount float32

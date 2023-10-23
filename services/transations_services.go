@@ -42,7 +42,7 @@ func (s *TransactionsService) GetByFilter(ctx context.Context, userId int) ([]*d
 
 	var transaction []*models.Transactions
 
-	err := tx.Where("user_id = ? AND (transaction_type = ? OR transaction_type = ? OR transaction_type = ?)", userId, models.SALES, models.WITHDRAW,models.Referral).Order("created_at desc").Find(&transaction).Error
+	err := tx.Where("user_id = ? AND (transaction_type = ? OR transaction_type = ? OR transaction_type = ? OR transaction_type = ?)", userId, models.SALES, models.WITHDRAW,models.Referral,models.GIFT).Order("created_at desc").Find(&transaction).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -97,8 +97,10 @@ func (f *TransactionsService) ConvertStringToStatus(status models.TransactionTyp
 		return 2
 	case models.Referral:
 		return 3
-	case models.CORRECTED:
+	case models.GIFT :
 		return 4
+	case models.CORRECTED:
+		return 5
 	default:
 		return 1
 	}

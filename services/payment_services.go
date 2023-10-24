@@ -195,17 +195,20 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		onePercent = float32(sum) / 100
 
 		if factor.User.ReferralMobile != "" {
-
-
 			var userReferral models.Users
 			err := tx.Where("mobile = ?" , factor.User.ReferralMobile).First(&userReferral).Error
 			if err != nil {
 				return false, nil, err
 			}
 
-			referralAmount = (onePercent * 2)
+			if userReferral.Assist == models.PARTNER {
+				referralAmount = (onePercent * 2)
+				dastak = (onePercent * 2)
+			}else{
+				referralAmount = (onePercent * 1)
+				dastak = (onePercent * 4)
+			}
 
-			dastak = (onePercent * 3)
 
 
 			transactionDastak := models.Transactions{

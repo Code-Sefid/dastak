@@ -160,12 +160,12 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 			}
 
 			transactions := models.Transactions{
-				UserID: userReferral.ID,
+				UserID:          userReferral.ID,
 				TransactionType: models.GIFT,
-				Amount: 15000,
-				Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
+				Amount:          15000,
+				Description:     "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
 			}
-	
+
 			err = tx.Create(&transactions).Error
 			if err != nil {
 				return nil, nil, false, err
@@ -181,14 +181,13 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 				return nil, nil, false, err
 			}
 
-
 			transactions := models.Transactions{
-				UserID: userReferral.ID,
+				UserID:          userReferral.ID,
 				TransactionType: models.Referral,
-				Amount: 15000,
-				Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
+				Amount:          15000,
+				Description:     "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
 			}
-	
+
 			err = tx.Create(&transactions).Error
 			if err != nil {
 				return nil, nil, false, err
@@ -201,6 +200,7 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		Mobile:         request.Mobile,
 		Type:           models.UsersType(a.IntToAccountType(request.AccountType)),
 		SaleCount:      request.SaleCount,
+		Assist:         models.NORMAL,
 		Password:       string(hashedPassword),
 		ReferralMobile: referral,
 	}
@@ -211,32 +211,30 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 		return nil, nil, false, err
 	}
 
-
 	if request.Referral != nil && *request.Referral != "" {
 		mainWallet := models.Wallet{
 			UserId: int(user.ID),
 			Amount: 15000,
 		}
-		
+
 		err = tx.Create(&mainWallet).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, nil, false, err
 		}
 
-
 		mainTransactions := models.Transactions{
-			UserID: user.ID,
+			UserID:          user.ID,
 			TransactionType: models.GIFT,
-			Amount: 15000,
-			Description: "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
+			Amount:          15000,
+			Description:     "مبلغ ۱۵ هزار تومن به عنوان هدیه رفرال به حساب شما واریز شد",
 		}
 
 		err = tx.Create(&mainTransactions).Error
 		if err != nil {
 			return nil, nil, false, err
 		}
-	
+
 	}
 
 	tokenData := tokenDto{UserId: int(user.ID), Mobile: user.Mobile}
@@ -247,7 +245,6 @@ func (a *AuthService) Register(ctx context.Context, request *dto.Register) (*dto
 
 	return token, &dto.Alert{Message: "حساب شما با موفقیت ثبت شد"}, true, nil
 }
-
 
 func (a *AuthService) ResendPassword(ctx context.Context, request dto.Mobile) (*dto.Alert, bool, error) {
 	tx := a.database.WithContext(ctx).Begin()
@@ -346,7 +343,7 @@ func (s *AuthService) GetUserByMobile(mobile string) (*models.Users, error) {
 	if user.DeletedAt.Valid {
 		return nil, nil
 	}
-	return &user,nil
+	return &user, nil
 }
 
 func (s *AuthService) SendOTP(mobile string, code string) error {

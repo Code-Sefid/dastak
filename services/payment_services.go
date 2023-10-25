@@ -75,9 +75,16 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 		sum += int(factor.PostalCost)
 	}
 	
+
+	var onePercent float32 
+	if sum > 500000 {
+		onePercent = 500000 / 100
+		onePercent = (500000 * 5)
+	}else {
+		onePercent = float32(sum) / 100
+		onePercent = (onePercent * 5)
+	}
 	
-	onePercent := float32(sum) / 100
-	onePercent = (onePercent * 5)
 	sum += int(onePercent)
 
 	merchant := p.cfg.Zibal.Token
@@ -191,6 +198,7 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 		var referralAmount float32
 		var dastak float32
 
+
 		// var referral int
 		onePercent = float32(sum) / 100
 
@@ -201,14 +209,24 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 				return false, nil, err
 			}
 
-			if userReferral.Assist == models.PARTNER {
-				referralAmount = (onePercent * 2)
-				dastak = (onePercent * 2)
-			}else{
-				referralAmount = (onePercent * 1)
-				dastak = (onePercent * 4)
-			}
 
+			if sum > 500000 {
+				if userReferral.Assist == models.PARTNER {
+					referralAmount = (500000 * 2)
+					dastak = (500000 * 2)
+				}else{
+					referralAmount = (onePercent * 1)
+					dastak = (onePercent * 4)
+				}
+			}else {
+				if userReferral.Assist == models.PARTNER {
+					referralAmount = (onePercent * 2)
+					dastak = (onePercent * 2)
+				}else{
+					referralAmount = (onePercent * 1)
+					dastak = (onePercent * 4)
+				}
+			}
 
 
 			transactionDastak := models.Transactions{

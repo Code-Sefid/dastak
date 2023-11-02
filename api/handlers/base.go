@@ -8,20 +8,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/soheilkhaledabdi/dastak/api/helper"
-	"github.com/soheilkhaledabdi/dastak/config"
 	"github.com/soheilkhaledabdi/dastak/constants"
-	"github.com/soheilkhaledabdi/dastak/pkg/logging"
 	"gorm.io/gorm"
 )
 
-var logger = logging.NewLogger(config.GetConfig())
 
 func Create[Ti any, To any](c *gin.Context, caller func(ctx context.Context, req *Ti) (*To, error)) {
 	req := new(Ti)
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 
@@ -40,7 +37,7 @@ func CreateByUserId[Ti any, To any](c *gin.Context, caller func(ctx context.Cont
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 
@@ -60,7 +57,7 @@ func Update[Ti any, To any](c *gin.Context, caller func(ctx context.Context, id 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 
@@ -82,7 +79,7 @@ func Delete(c *gin.Context, caller func(ctx context.Context, id int, userID int)
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	if id == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound,
-			helper.GenerateBaseResponse(nil, false, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponse(nil, false, "پیدا نشد"))
 		return
 	}
 
@@ -104,7 +101,7 @@ func GetById[To any](c *gin.Context, caller func(c context.Context, id int, user
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
 	if id == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound,
-			helper.GenerateBaseResponse(nil, false, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponse(nil, false, "پیدا نشد"))
 		return
 	}
 
@@ -125,7 +122,7 @@ func GetByUserId[To any](c *gin.Context, caller func(c context.Context, id int) 
 	userID := int(c.Value(constants.UserIdKey).(float64))
 	if userID == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound,
-			helper.GenerateBaseResponse(nil, false, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponse(nil, false, "پیدا نشد"))
 		return
 	}
 
@@ -152,7 +149,7 @@ func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest,
-			helper.GenerateBaseResponseWithValidationError(false, err, "مشکلی پیش امده لطفا مجدد امتحان کنید یا با پشتیبانی تماس بگیرید"))
+			helper.GenerateBaseResponseWithValidationError(false, err, "لطفا اطلاعات ها را به درستی پر کنید"))
 		return
 	}
 

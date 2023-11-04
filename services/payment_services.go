@@ -77,9 +77,9 @@ func (p *PaymentService) PaymentURL(ctx context.Context, req *dto.Payment) (*dto
 	
 
 	var onePercent float32 
-	if sum > 500000 {
-		onePercent = 500000 / 100
-		onePercent = (500000 * 5)
+	if sum > 200000 {
+		onePercent = 200000 / 100
+		onePercent = (200000 * 5)
 	}else {
 		onePercent = float32(sum) / 100
 		onePercent = (onePercent * 5)
@@ -210,10 +210,10 @@ func (p *PaymentService) CheckPayment(ctx context.Context, req *dto.Verify) (boo
 			}
 
 
-			if sum > 500000 {
+			if sum > 200000 {
 				if userReferral.Assist == models.PARTNER {
-					referralAmount = (500000 * 2)
-					dastak = (500000 * 2)
+					referralAmount = (200000 * 2)
+					dastak = (200000 * 2)
 				}else{
 					referralAmount = (onePercent * 1)
 					dastak = (onePercent * 4)

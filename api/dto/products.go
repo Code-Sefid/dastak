@@ -8,10 +8,10 @@ type CreateProductsRequest struct {
 }
 
 type UpdateProductsRequest struct {
-	Title      string  `json:"title"`
-	Price      float64 `json:"price"`
-	CategoryID int     `json:"categoryId"`
-	Inventory  int     `json:"inventory"`
+	Title      *string  `json:"title"`
+	Price      *float64 `json:"price"`
+	CategoryID *int     `json:"categoryId"`
+	Inventory  *int     `json:"inventory"`
 }
 
 type ProductsResponse struct {
